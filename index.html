@@ -108,7 +108,7 @@
       <button type="button" class="btn-main" onclick="registerQueue()">번호표 등록하기</button>
     </div>
 
-    <!-- 순수 대기 명단 (버튼 없음) -->
+    <!-- 대기 명단 -->
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span class="card-title">실시간 대기 명단</span>
@@ -122,7 +122,6 @@
 
   <!-- ==================== 관리자 화면 ==================== -->
   <div id="adminView" style="display: none; flex-direction: column; gap: 14px;">
-    <!-- 관리자 호출 컨트롤러 -->
     <div class="card">
       <div class="card-title">📢 손님 호출 컨트롤</div>
       <div class="admin-controls">
@@ -131,7 +130,6 @@
       </div>
     </div>
 
-    <!-- 관리자 대기 명단 -->
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span class="card-title">대기열 실시간 관리</span>
@@ -149,12 +147,9 @@
 <div id="toastBox" class="toast"></div>
 
 <script>
-  // 캠핑장 전용 실시간 동기화 채널
-  const SYNC_ROOM = "g_vol_hal_2026";
-  const SYNC_URL = `https://ntfy.sh/${SYNC_ROOM}/json`;
-
   var ADMIN_PIN = "0000";
   var currentView = "guest";
+  var lastRenderedJson = "";
 
   var appData = {
     currentNum: 0,
@@ -178,22 +173,10 @@
     } catch (e) {}
   }
 
-  // 화면과 로컬 저장을 무조건 먼저 끝내고, 통신은 백그라운드에서 비동기 처리
-  function commitAndSync() {
+  function saveData() {
     try {
       localStorage.setItem("hal_tab_data", JSON.stringify(appData));
     } catch (e) {}
-    render();
-
-    // 외부 네트워크 통신 (실패해도 앱 화면 동작에는 일절 지장 없음)
-    try {
-      fetch(`https://ntfy.sh/${SYNC_ROOM}`, {
-        method: 'POST',
-        body: JSON.stringify(appData),
-        headers: { 'Title': 'HAL_SYNC' },
-        mode: 'no-cors'
-      }).catch(function(){});
-    } catch(err){}
   }
 
   function switchViewMode() {
@@ -217,7 +200,7 @@
         alert("비밀번호가 일치하지 않습니다.");
       }
     }
-    render();
+    render(true);
   }
 
   function pickOption(el, count, price) {
@@ -229,7 +212,6 @@
     curOpt = { count: count, price: price };
   }
 
-  // 손님 등록: 즉각 등록 및 토스트 표시
   function registerQueue() {
     var input = document.getElementById("custName");
     var name = input.value.trim();
@@ -247,15 +229,13 @@
 
     appData.list.push(item);
     input.value = "";
-    
-    // 무조건 즉각 저장 및 화면 반영
-    commitAndSync();
+    saveData();
+    render(true);
 
     showToast("🎉 #" + item.num + "번 " + item.name + "님 접수 완료! (대기 " + appData.list.length + "번째)");
     playChime(600, 0.15);
   }
 
-  // 관리자 호출
   function callNextDirect() {
     if (appData.list.length === 0) {
       alert("대기 중인 다음 손님이 없습니다.");
@@ -265,8 +245,8 @@
     appData.currentNum = next.num;
     appData.currentName = next.name;
     appData.currentOpt = next.opt;
-    
-    commitAndSync();
+    saveData();
+    render(true);
     playChime(880, 0.3);
   }
 
@@ -278,13 +258,15 @@
     appData.currentNum = 0;
     appData.currentName = "부스 준비 중";
     appData.currentOpt = "";
-    commitAndSync();
+    saveData();
+    render(true);
   }
 
   function delOne(num) {
     if (!confirm("#" + num + "번 대기자를 취소하시겠습니까?")) return;
     appData.list = appData.list.filter(function(i) { return i.num !== num; });
-    commitAndSync();
+    saveData();
+    render(true);
   }
 
   function resetQueue() {
@@ -296,7 +278,8 @@
       lastNum: 0,
       list: []
     };
-    commitAndSync();
+    saveData();
+    render(true);
   }
 
   function showToast(msg) {
@@ -323,7 +306,14 @@
     } catch(e){}
   }
 
-  function render() {
+  // 데이터가 실제로 변경되었을 때만 렌더링 (깜빡임 방지)
+  function render(force) {
+    var currentJson = JSON.stringify(appData);
+    if (!force && currentJson === lastRenderedJson) {
+      return; // 데이터 변경 없으면 재렌더링 생략
+    }
+    lastRenderedJson = currentJson;
+
     // 1. 공통 상단 전광판
     var badge = document.getElementById("statusBadge");
     var liveNum = document.getElementById("liveNum");
@@ -393,37 +383,14 @@
     }
   }
 
-  // 실시간 웹소켓/EventSource 연결
-  function initRealtimeSync() {
-    try {
-      if (window.EventSource) {
-        var es = new EventSource(SYNC_URL);
-        es.onmessage = function(e) {
-          try {
-            var payload = JSON.parse(e.data);
-            if (payload && payload.message) {
-              var remote = JSON.parse(payload.message);
-              if (remote && typeof remote.lastNum === "number") {
-                appData = remote;
-                localStorage.setItem("hal_tab_data", JSON.stringify(appData));
-                render();
-              }
-            }
-          } catch(err) {}
-        };
-      }
-    } catch(e){}
-  }
-
-  // 브라우저 내부 동기화 감시
+  // 탭 간 또는 저장소 변경 시 즉시 동기화
   window.addEventListener('storage', function() {
     loadData();
-    render();
+    render(false);
   });
 
   loadData();
-  render();
-  initRealtimeSync();
+  render(true);
 </script>
 </body>
 </html>
