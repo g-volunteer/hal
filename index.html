@@ -131,7 +131,7 @@
       </div>
     </div>
 
-    <!-- 관리자 대기 명단 (손님이 폰으로 등록 시 여기에도 즉시 뜸) -->
+    <!-- 관리자 대기 명단 -->
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span class="card-title">대기열 실시간 관리</span>
@@ -178,16 +178,22 @@
     } catch (e) {}
   }
 
-  function saveDataAndSync() {
+  // 화면과 로컬 저장을 무조건 먼저 끝내고, 통신은 백그라운드에서 비동기 처리
+  function commitAndSync() {
     try {
       localStorage.setItem("hal_tab_data", JSON.stringify(appData));
     } catch (e) {}
-    // 원격 동기화 서버로 브로드캐스트 전송
-    fetch(`https://ntfy.sh/${SYNC_ROOM}`, {
-      method: 'POST',
-      body: JSON.stringify(appData),
-      headers: { 'Title': 'HAL_SYNC' }
-    }).catch(function(err){});
+    render();
+
+    // 외부 네트워크 통신 (실패해도 앱 화면 동작에는 일절 지장 없음)
+    try {
+      fetch(`https://ntfy.sh/${SYNC_ROOM}`, {
+        method: 'POST',
+        body: JSON.stringify(appData),
+        headers: { 'Title': 'HAL_SYNC' },
+        mode: 'no-cors'
+      }).catch(function(){});
+    } catch(err){}
   }
 
   function switchViewMode() {
@@ -223,7 +229,7 @@
     curOpt = { count: count, price: price };
   }
 
-  // 손님 등록 시
+  // 손님 등록: 즉각 등록 및 토스트 표시
   function registerQueue() {
     var input = document.getElementById("custName");
     var name = input.value.trim();
@@ -241,8 +247,9 @@
 
     appData.list.push(item);
     input.value = "";
-    saveDataAndSync();
-    render();
+    
+    // 무조건 즉각 저장 및 화면 반영
+    commitAndSync();
 
     showToast("🎉 #" + item.num + "번 " + item.name + "님 접수 완료! (대기 " + appData.list.length + "번째)");
     playChime(600, 0.15);
@@ -258,8 +265,8 @@
     appData.currentNum = next.num;
     appData.currentName = next.name;
     appData.currentOpt = next.opt;
-    saveDataAndSync();
-    render();
+    
+    commitAndSync();
     playChime(880, 0.3);
   }
 
@@ -271,15 +278,13 @@
     appData.currentNum = 0;
     appData.currentName = "부스 준비 중";
     appData.currentOpt = "";
-    saveDataAndSync();
-    render();
+    commitAndSync();
   }
 
   function delOne(num) {
     if (!confirm("#" + num + "번 대기자를 취소하시겠습니까?")) return;
     appData.list = appData.list.filter(function(i) { return i.num !== num; });
-    saveDataAndSync();
-    render();
+    commitAndSync();
   }
 
   function resetQueue() {
@@ -291,8 +296,7 @@
       lastNum: 0,
       list: []
     };
-    saveDataAndSync();
-    render();
+    commitAndSync();
   }
 
   function showToast(msg) {
@@ -319,7 +323,6 @@
     } catch(e){}
   }
 
-  // 화면 전체 강제 렌더링
   function render() {
     // 1. 공통 상단 전광판
     var badge = document.getElementById("statusBadge");
@@ -366,7 +369,7 @@
       guestList.innerHTML = gHtml;
     }
 
-    // 3. 관리자 화면 대기 리스트 (관리자 모드일 때 실시간으로 목록에 들어옴)
+    // 3. 관리자 화면 대기 리스트
     document.getElementById("adminWaitCountText").innerText = "총 " + waitCount + "명";
     var adminList = document.getElementById("adminQueueList");
     if (waitCount === 0) {
@@ -390,45 +393,29 @@
     }
   }
 
-  // 실시간 웹소켓/EventSource 연결 (누가 등록/호출하면 관리자 화면도 즉시 갱신)
+  // 실시간 웹소켓/EventSource 연결
   function initRealtimeSync() {
-    if (window.EventSource) {
-      var es = new EventSource(SYNC_URL);
-      es.onmessage = function(e) {
-        try {
-          var payload = JSON.parse(e.data);
-          if (payload && payload.message) {
-            var remote = JSON.parse(payload.message);
-            if (remote && typeof remote.lastNum === "number") {
-              appData = remote;
-              localStorage.setItem("hal_tab_data", JSON.stringify(appData));
-              render();
+    try {
+      if (window.EventSource) {
+        var es = new EventSource(SYNC_URL);
+        es.onmessage = function(e) {
+          try {
+            var payload = JSON.parse(e.data);
+            if (payload && payload.message) {
+              var remote = JSON.parse(payload.message);
+              if (remote && typeof remote.lastNum === "number") {
+                appData = remote;
+                localStorage.setItem("hal_tab_data", JSON.stringify(appData));
+                render();
+              }
             }
-          }
-        } catch(err) {}
-      };
-    }
-
-    // 혹시 모를 네트워크 지연을 대비한 1.5초 주기 폴링 백업
-    setInterval(function() {
-      fetch(`https://ntfy.sh/${SYNC_ROOM}/raw?poll=1`)
-        .then(function(res) { return res.text(); })
-        .then(function(text) {
-          if (!text) return;
-          var lines = text.trim().split("\n");
-          var latest = lines[lines.length - 1];
-          var remote = JSON.parse(latest);
-          if (remote && JSON.stringify(remote) !== JSON.stringify(appData)) {
-            appData = remote;
-            localStorage.setItem("hal_tab_data", JSON.stringify(appData));
-            render();
-          }
-        })
-        .catch(function(){});
-    }, 1500);
+          } catch(err) {}
+        };
+      }
+    } catch(e){}
   }
 
-  // 브라우저 탭 간 동기화 이벤트
+  // 브라우저 내부 동기화 감시
   window.addEventListener('storage', function() {
     loadData();
     render();
