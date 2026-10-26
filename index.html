@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>🎃 할로윈 타투 부스 웨이팅</title>
+  <title>🎃 할로윈 타투스티커 부스 웨이팅</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
     body { background-color: #121420; color: #f3f4f6; display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
@@ -47,7 +47,8 @@
     .admin-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
     .btn-call { background: #ff7828; color: #ffffff; border: none; border-radius: 12px; padding: 15px; font-size: 1.05rem; font-weight: 800; cursor: pointer; }
     .btn-call:active { filter: brightness(0.9); }
-    .btn-finish { background: #2e3553; color: #e5e7eb; border: none; border-radius: 12px; padding: 15px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+    .btn-finish { background: #2e3553; color: #e5e7eb; border: none; border-radius: 12px; padding: 15px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+    .btn-finish:active { filter: brightness(0.9); }
     .btn-reset-all { background: #374151; color: #f87171; border: none; border-radius: 10px; padding: 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-top: 8px; }
 
     /* 대기 리스트 */
@@ -68,13 +69,13 @@
 
   <!-- 헤더 -->
   <header class="header">
-    <div class="title" id="pageTitle">🎃 할로윈 타투 부스</div>
+    <div class="title" id="pageTitle">🎃 할로윈 타투스티커 부스</div>
     <button type="button" class="mode-switch-btn" id="modeBtn" onclick="switchViewMode()">⚙️ 관리자 모드</button>
   </header>
 
-  <!-- 1. 상단: 현재 시술 현황 전광판 -->
+  <!-- 1. 상단: 현재 진행 현황 전광판 -->
   <section class="board">
-    <div class="board-tag" id="statusBadge">지금 시술 중!</div>
+    <div class="board-tag" id="statusBadge">지금 진행 중!</div>
     <div class="call-num" id="liveNum">0번</div>
     <div class="call-name" id="liveName">부스 준비 중</div>
     <div class="call-opt" id="liveOpt"></div>
@@ -89,17 +90,17 @@
         <input type="text" id="custName" placeholder="예: 호박마녀, 수아, 번개맨" maxlength="10" />
       </div>
       <div class="form-group">
-        <label>타투 수량 선택 (스티커는 현장에서 골라요!)</label>
+        <label>타투스티커 수량 선택 (스티커는 현장에서 골라요!)</label>
         <div class="option-grid">
-          <div class="option-item active" onclick="pickOption(this, '타투 1장', '1,000원')">
+          <div class="option-item active" onclick="pickOption(this, '타투스티커 1장', '1,000원')">
             <div class="cnt">타투 1장</div>
             <div class="prc">1,000원</div>
           </div>
-          <div class="option-item" onclick="pickOption(this, '타투 2장', '2,000원')">
+          <div class="option-item" onclick="pickOption(this, '타투스티커 2장', '2,000원')">
             <div class="cnt">타투 2장</div>
             <div class="prc">2,000원</div>
           </div>
-          <div class="option-item" onclick="pickOption(this, '타투 3장', '3,000원')">
+          <div class="option-item" onclick="pickOption(this, '타투스티커 3장', '3,000원')">
             <div class="cnt">타투 3장</div>
             <div class="prc">3,000원</div>
           </div>
@@ -126,7 +127,7 @@
       <div class="card-title">📢 손님 호출 컨트롤</div>
       <div class="admin-controls">
         <button type="button" class="btn-call" onclick="callNextDirect()">📢 다음 손님 호출하기</button>
-        <button type="button" class="btn-finish" onclick="finishCurrentDirect()">시술 완료</button>
+        <button type="button" class="btn-finish" onclick="finishCurrentDirect()">완료</button>
       </div>
     </div>
 
@@ -148,7 +149,8 @@
 
 <script>
   var ADMIN_PIN = "0000";
-  var currentView = "guest";
+  // 새로고침 시에도 유지되도록 세션 스토리지에서 모드 확인
+  var currentView = sessionStorage.getItem("hal_view_mode") || "guest";
   var lastRenderedJson = "";
 
   var appData = {
@@ -159,7 +161,7 @@
     list: []
   };
 
-  var curOpt = { count: "타투 1장", price: "1,000원" };
+  var curOpt = { count: "타투스티커 1장", price: "1,000원" };
 
   function loadData() {
     try {
@@ -179,23 +181,34 @@
     } catch (e) {}
   }
 
+  // 모드 적용 헬퍼
+  function applyViewMode() {
+    if (currentView === "admin") {
+      document.getElementById("modeBtn").innerText = "👤 손님 화면으로";
+      document.getElementById("modeBtn").className = "mode-switch-btn admin-on";
+      document.getElementById("pageTitle").innerText = "🛠️ 부스 관리자 모드";
+      document.getElementById("guestView").style.display = "none";
+      document.getElementById("adminView").style.display = "flex";
+    } else {
+      document.getElementById("modeBtn").innerText = "⚙️ 관리자 모드";
+      document.getElementById("modeBtn").className = "mode-switch-btn";
+      document.getElementById("pageTitle").innerText = "🎃 할로윈 타투스티커 부스";
+      document.getElementById("guestView").style.display = "flex";
+      document.getElementById("adminView").style.display = "none";
+    }
+  }
+
   function switchViewMode() {
     if (currentView === "admin") {
       currentView = "guest";
-      document.getElementById("modeBtn").innerText = "⚙️ 관리자 모드";
-      document.getElementById("modeBtn").className = "mode-switch-btn";
-      document.getElementById("pageTitle").innerText = "🎃 할로윈 타투 부스";
-      document.getElementById("guestView").style.display = "flex";
-      document.getElementById("adminView").style.display = "none";
+      sessionStorage.setItem("hal_view_mode", "guest");
+      applyViewMode();
     } else {
       var pin = prompt("관리자 비밀번호를 입력하세요 (기본: 0000):");
       if (pin === ADMIN_PIN) {
         currentView = "admin";
-        document.getElementById("modeBtn").innerText = "👤 손님 화면으로";
-        document.getElementById("modeBtn").className = "mode-switch-btn admin-on";
-        document.getElementById("pageTitle").innerText = "🛠️ 부스 관리자 모드";
-        document.getElementById("guestView").style.display = "none";
-        document.getElementById("adminView").style.display = "flex";
+        sessionStorage.setItem("hal_view_mode", "admin");
+        applyViewMode();
       } else if (pin !== null) {
         alert("비밀번호가 일치하지 않습니다.");
       }
@@ -250,9 +263,10 @@
     playChime(880, 0.3);
   }
 
+  // '완료' 버튼 처리
   function finishCurrentDirect() {
     if (appData.currentNum === 0) {
-      alert("현재 진행 중인 시술이 없습니다.");
+      alert("현재 진행 중인 손님이 없습니다.");
       return;
     }
     appData.currentNum = 0;
@@ -306,11 +320,10 @@
     } catch(e){}
   }
 
-  // 데이터가 실제로 변경되었을 때만 렌더링 (깜빡임 방지)
   function render(force) {
     var currentJson = JSON.stringify(appData);
     if (!force && currentJson === lastRenderedJson) {
-      return; // 데이터 변경 없으면 재렌더링 생략
+      return;
     }
     lastRenderedJson = currentJson;
 
@@ -321,7 +334,7 @@
     var liveOpt = document.getElementById("liveOpt");
 
     if (appData.currentNum > 0) {
-      badge.innerText = "현재 시술 중 🎨";
+      badge.innerText = "현재 진행 중 🎨";
       badge.style.background = "rgba(255, 120, 40, 0.2)";
       badge.style.color = "#ff7828";
       liveNum.innerText = "#" + appData.currentNum + "번";
@@ -383,13 +396,13 @@
     }
   }
 
-  // 탭 간 또는 저장소 변경 시 즉시 동기화
   window.addEventListener('storage', function() {
     loadData();
     render(false);
   });
 
   loadData();
+  applyViewMode(); // 새로고침 시 저장된 모드(관리자/손님) 즉시 복원
   render(true);
 </script>
 </body>
