@@ -237,3 +237,206 @@
       num: appData.lastNum,
       name: name,
       opt: optStr
+    };
+
+    appData.list.push(item);
+    input.value = "";
+    saveDataAndSync();
+    render();
+
+    showToast("🎉 #" + item.num + "번 " + item.name + "님 접수 완료! (대기 " + appData.list.length + "번째)");
+    playChime(600, 0.15);
+  }
+
+  // 관리자 호출
+  function callNextDirect() {
+    if (appData.list.length === 0) {
+      alert("대기 중인 다음 손님이 없습니다.");
+      return;
+    }
+    var next = appData.list.shift();
+    appData.currentNum = next.num;
+    appData.currentName = next.name;
+    appData.currentOpt = next.opt;
+    saveDataAndSync();
+    render();
+    playChime(880, 0.3);
+  }
+
+  function finishCurrentDirect() {
+    if (appData.currentNum === 0) {
+      alert("현재 진행 중인 시술이 없습니다.");
+      return;
+    }
+    appData.currentNum = 0;
+    appData.currentName = "부스 준비 중";
+    appData.currentOpt = "";
+    saveDataAndSync();
+    render();
+  }
+
+  function delOne(num) {
+    if (!confirm("#" + num + "번 대기자를 취소하시겠습니까?")) return;
+    appData.list = appData.list.filter(function(i) { return i.num !== num; });
+    saveDataAndSync();
+    render();
+  }
+
+  function resetQueue() {
+    if (!confirm("전체 번호표와 대기열을 완전히 초기화하시겠습니까?")) return;
+    appData = {
+      currentNum: 0,
+      currentName: "부스 준비 중",
+      currentOpt: "",
+      lastNum: 0,
+      list: []
+    };
+    saveDataAndSync();
+    render();
+  }
+
+  function showToast(msg) {
+    var toast = document.getElementById("toastBox");
+    toast.innerText = msg;
+    toast.style.display = "block";
+    setTimeout(function() {
+      toast.style.display = "none";
+    }, 2800);
+  }
+
+  function playChime(freq, dur) {
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
+      osc.start();
+      osc.stop(ctx.currentTime + dur);
+    } catch(e){}
+  }
+
+  // 화면 전체 강제 렌더링
+  function render() {
+    // 1. 공통 상단 전광판
+    var badge = document.getElementById("statusBadge");
+    var liveNum = document.getElementById("liveNum");
+    var liveName = document.getElementById("liveName");
+    var liveOpt = document.getElementById("liveOpt");
+
+    if (appData.currentNum > 0) {
+      badge.innerText = "현재 시술 중 🎨";
+      badge.style.background = "rgba(255, 120, 40, 0.2)";
+      badge.style.color = "#ff7828";
+      liveNum.innerText = "#" + appData.currentNum + "번";
+      liveName.innerText = appData.currentName + " 어린이";
+      liveOpt.innerText = "[" + appData.currentOpt + "]";
+    } else {
+      badge.innerText = "부스 대기 중 💤";
+      badge.style.background = "rgba(16, 185, 129, 0.15)";
+      badge.style.color = "#10b981";
+      liveNum.innerText = "-";
+      liveName.innerText = "다음 손님을 호출해 주세요";
+      liveOpt.innerText = "";
+    }
+
+    var waitCount = appData.list.length;
+
+    // 2. 손님 화면 대기 리스트
+    document.getElementById("guestWaitCountText").innerText = "대기 " + waitCount + "명 (약 " + (waitCount * 3) + "분)";
+    var guestList = document.getElementById("guestQueueList");
+    if (waitCount === 0) {
+      guestList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>';
+    } else {
+      var gHtml = "";
+      for (var i = 0; i < waitCount; i++) {
+        var row = appData.list[i];
+        gHtml += '<div class="queue-row">' +
+                   '<div class="q-left">' +
+                     '<span class="q-badge">#' + row.num + '</span>' +
+                     '<span class="q-name">' + row.name + '</span>' +
+                     '<span class="q-opt">[' + row.opt + ']</span>' +
+                   '</div>' +
+                   '<div style="font-size: 0.8rem; color: #9ca3af; font-weight: 700;">' + (i + 1) + '번째</div>' +
+                 '</div>';
+      }
+      guestList.innerHTML = gHtml;
+    }
+
+    // 3. 관리자 화면 대기 리스트 (관리자 모드일 때 실시간으로 목록에 들어옴)
+    document.getElementById("adminWaitCountText").innerText = "총 " + waitCount + "명";
+    var adminList = document.getElementById("adminQueueList");
+    if (waitCount === 0) {
+      adminList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>';
+    } else {
+      var aHtml = "";
+      for (var j = 0; j < waitCount; j++) {
+        var item = appData.list[j];
+        aHtml += '<div class="queue-row">' +
+                   '<div class="q-left">' +
+                     '<span class="q-badge">#' + item.num + '</span>' +
+                     '<span class="q-name">' + item.name + '</span>' +
+                     '<span class="q-opt">[' + item.opt + ']</span>' +
+                   '</div>' +
+                   '<div>' +
+                     '<button type="button" class="btn-del" onclick="delOne(' + item.num + ')">취소</button>' +
+                   '</div>' +
+                 '</div>';
+      }
+      adminList.innerHTML = aHtml;
+    }
+  }
+
+  // 실시간 웹소켓/EventSource 연결 (누가 등록/호출하면 관리자 화면도 즉시 갱신)
+  function initRealtimeSync() {
+    if (window.EventSource) {
+      var es = new EventSource(SYNC_URL);
+      es.onmessage = function(e) {
+        try {
+          var payload = JSON.parse(e.data);
+          if (payload && payload.message) {
+            var remote = JSON.parse(payload.message);
+            if (remote && typeof remote.lastNum === "number") {
+              appData = remote;
+              localStorage.setItem("hal_tab_data", JSON.stringify(appData));
+              render();
+            }
+          }
+        } catch(err) {}
+      };
+    }
+
+    // 혹시 모를 네트워크 지연을 대비한 1.5초 주기 폴링 백업
+    setInterval(function() {
+      fetch(`https://ntfy.sh/${SYNC_ROOM}/raw?poll=1`)
+        .then(function(res) { return res.text(); })
+        .then(function(text) {
+          if (!text) return;
+          var lines = text.trim().split("\n");
+          var latest = lines[lines.length - 1];
+          var remote = JSON.parse(latest);
+          if (remote && JSON.stringify(remote) !== JSON.stringify(appData)) {
+            appData = remote;
+            localStorage.setItem("hal_tab_data", JSON.stringify(appData));
+            render();
+          }
+        })
+        .catch(function(){});
+    }, 1500);
+  }
+
+  // 브라우저 탭 간 동기화 이벤트
+  window.addEventListener('storage', function() {
+    loadData();
+    render();
+  });
+
+  loadData();
+  render();
+  initRealtimeSync();
+</script>
+</body>
+</html>
