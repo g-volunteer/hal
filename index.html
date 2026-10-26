@@ -12,7 +12,8 @@
     /* 헤더 */
     .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2b324b; padding-bottom: 12px; }
     .title { font-size: 1.25rem; font-weight: 800; color: #ff7828; }
-    .btn-reset { border: 1px solid #374151; background: #1e2238; color: #9ca3af; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+    .lock-btn { border: 1px solid #374151; background: #1e2238; color: #9ca3af; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+    .lock-btn.unlocked { background: #ff7828; color: #fff; border-color: #ff7828; }
 
     /* 현재 시술 중 메인 전광판 */
     .board { background: #1c2035; border: 1px solid #2e3553; border-radius: 18px; padding: 18px; text-align: center; }
@@ -49,28 +50,29 @@
     .btn-main { background: #10b981; color: #ffffff; border: none; border-radius: 12px; padding: 16px; font-size: 1.1rem; font-weight: 800; cursor: pointer; }
     .btn-main:active { filter: brightness(0.9); }
 
-    /* 대기 리스트 카드 */
+    /* 대기 리스트 카드 (순수 조회형) */
     .queue-box { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
-    .queue-row { display: flex; justify-content: space-between; align-items: center; background: #121422; border: 1px solid #2e3553; border-radius: 10px; padding: 10px 14px; }
+    .queue-row { display: flex; justify-content: space-between; align-items: center; background: #121422; border: 1px solid #2e3553; border-radius: 10px; padding: 12px 14px; }
     .q-left { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
     .q-badge { font-size: 1.15rem; font-weight: 900; color: #ff7828; }
     .q-name { font-weight: 700; color: #ffffff; }
     .q-opt { font-size: 0.8rem; color: #fde047; font-weight: 600; }
-    .q-acts button { border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-    .btn-q-call { background: #ff7828; color: #ffffff; }
-    .btn-q-del { background: #374151; color: #9ca3af; margin-left: 4px; }
+    .btn-del-secret { display: none; background: #374151; color: #ef4444; border: none; padding: 5px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
 
-    /* 접수 완료 알림 토스트 */
+    /* 토스트 알림 */
     .toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff7828; color: #fff; padding: 14px 24px; border-radius: 30px; font-weight: 800; font-size: 1rem; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 1000; text-align: center; }
   </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- 헤더 -->
+  <!-- 헤더 (잠금 버튼) -->
   <header class="header">
     <div class="title">🎃 할로윈 타투 부스</div>
-    <button type="button" class="btn-reset" onclick="resetQueue()">부스 마감 / 초기화</button>
+    <div style="display: flex; gap: 6px;">
+      <button type="button" class="lock-btn" id="lockBtn" onclick="toggleAdminLock()">🔒 관리자잠금</button>
+      <button type="button" class="lock-btn" id="resetBtn" style="display:none;" onclick="resetQueue()">초기화</button>
+    </div>
   </header>
 
   <!-- 1. 상단: 현재 시술 중 전광판 & 관리자 호출 버튼 -->
@@ -81,8 +83,8 @@
     <div class="call-opt" id="liveOpt"></div>
     
     <div class="admin-controls">
-      <button type="button" class="btn-call" onclick="callNext()">📢 다음 손님 호출하기</button>
-      <button type="button" class="btn-finish" onclick="finishCurrent()">시술 완료</button>
+      <button type="button" class="btn-call" onclick="callNextSecure()">📢 다음 손님 호출하기</button>
+      <button type="button" class="btn-finish" onclick="finishCurrentSecure()">시술 완료</button>
     </div>
   </section>
 
@@ -113,7 +115,7 @@
     <button type="button" class="btn-main" onclick="registerQueue()">번호표 등록하기</button>
   </div>
 
-  <!-- 3. 하단: 실시간 대기 현황 리스트 -->
+  <!-- 3. 하단: 실시간 대기 명단 (보기 전용) -->
   <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <span class="card-title">실시간 대기 명단</span>
@@ -126,10 +128,13 @@
 
 </div>
 
-<!-- 등록 완료 팝업 -->
+<!-- 등록 완료 토스트 -->
 <div id="toastBox" class="toast"></div>
 
 <script>
+  var ADMIN_PIN = "0000"; // 관리자 비밀번호 (필요시 변경 가능)
+  var isAdminUnlocked = false;
+
   var appData = {
     currentNum: 0,
     currentName: "부스 준비 중",
@@ -158,6 +163,28 @@
     } catch (e) {}
   }
 
+  // 관리자 잠금/해제 토글
+  function toggleAdminLock() {
+    if (isAdminUnlocked) {
+      isAdminUnlocked = false;
+      document.getElementById("lockBtn").innerText = "🔒 관리자잠금";
+      document.getElementById("lockBtn").className = "lock-btn";
+      document.getElementById("resetBtn").style.display = "none";
+      render();
+    } else {
+      var pin = prompt("관리자 비밀번호를 입력하세요 (기본: 0000):");
+      if (pin === ADMIN_PIN) {
+        isAdminUnlocked = true;
+        document.getElementById("lockBtn").innerText = "🔓 관리자모드";
+        document.getElementById("lockBtn").className = "lock-btn unlocked";
+        document.getElementById("resetBtn").style.display = "block";
+        render();
+      } else if (pin !== null) {
+        alert("비밀번호가 올바르지 않습니다.");
+      }
+    }
+  }
+
   function pickOption(el, count, price) {
     var items = document.querySelectorAll(".option-item");
     for (var i = 0; i < items.length; i++) {
@@ -167,7 +194,7 @@
     curOpt = { count: count, price: price };
   }
 
-  // 손님이 등록 버튼 누를 때
+  // 손님 등록 (누구나 가능)
   function registerQueue() {
     var input = document.getElementById("custName");
     var name = input.value.trim();
@@ -188,13 +215,20 @@
     saveData();
     render();
 
-    // 등록 확인 토스트 띄우기
     showToast("🎉 #" + item.num + "번 " + item.name + "님 접수 완료! (대기 " + appData.list.length + "번째)");
     playChime(600, 0.15);
   }
 
-  // 관리자가 다음 손님 호출
-  function callNext() {
+  // 관리자 호출 (비밀번호 확인 또는 관리자 모드 시 동작)
+  function callNextSecure() {
+    if (!isAdminUnlocked) {
+      var pin = prompt("호출하려면 관리자 비밀번호를 입력하세요:");
+      if (pin !== ADMIN_PIN) {
+        if (pin !== null) alert("비밀번호가 일치하지 않습니다.");
+        return;
+      }
+    }
+
     if (appData.list.length === 0) {
       alert("대기 중인 다음 손님이 없습니다.");
       return;
@@ -208,28 +242,15 @@
     playChime(880, 0.3);
   }
 
-  // 특정 손님 바로 호출
-  function callOne(num) {
-    var idx = -1;
-    for (var i = 0; i < appData.list.length; i++) {
-      if (appData.list[i].num === num) {
-        idx = i;
-        break;
+  function finishCurrentSecure() {
+    if (!isAdminUnlocked) {
+      var pin = prompt("완료 처리하려면 관리자 비밀번호를 입력하세요:");
+      if (pin !== ADMIN_PIN) {
+        if (pin !== null) alert("비밀번호가 일치하지 않습니다.");
+        return;
       }
     }
-    if (idx !== -1) {
-      var item = appData.list.splice(idx, 1)[0];
-      appData.currentNum = item.num;
-      appData.currentName = item.name;
-      appData.currentOpt = item.opt;
-      saveData();
-      render();
-      playChime(880, 0.3);
-    }
-  }
 
-  // 시술 완료 처리
-  function finishCurrent() {
     if (appData.currentNum === 0) {
       alert("현재 진행 중인 시술이 없습니다.");
       return;
@@ -241,16 +262,17 @@
     render();
   }
 
-  // 대기 취소
+  // 관리자 모드에서만 삭제 가능
   function delOne(num) {
+    if (!isAdminUnlocked) return;
+    if (!confirm("#" + num + "번 대기자를 취소하시겠습니까?")) return;
     appData.list = appData.list.filter(function(i) { return i.num !== num; });
     saveData();
     render();
   }
 
-  // 전체 초기화
   function resetQueue() {
-    if (!confirm("전체 번호표와 대기열을 초기화하시겠습니까?")) return;
+    if (!confirm("전체 번호표와 대기열을 완전히 초기화하시겠습니까?")) return;
     appData = {
       currentNum: 0,
       currentName: "부스 준비 중",
@@ -308,7 +330,7 @@
     var waitCount = appData.list.length;
     document.getElementById("waitCountText").innerText = "대기 " + waitCount + "명 (약 " + (waitCount * 3) + "분)";
 
-    // 3. 대기 리스트
+    // 3. 대기 리스트 (보기 전용, 관리자 모드일 때만 삭제 버튼 노출)
     var adminList = document.getElementById("adminList");
     if (appData.list.length === 0) {
       adminList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>';
@@ -316,15 +338,15 @@
       var html = "";
       for (var i = 0; i < appData.list.length; i++) {
         var row = appData.list[i];
+        var delBtnDisplay = isAdminUnlocked ? 'inline-block' : 'none';
         html += '<div class="queue-row">' +
                   '<div class="q-left">' +
                     '<span class="q-badge">#' + row.num + '</span>' +
                     '<span class="q-name">' + row.name + '</span>' +
                     '<span class="q-opt">[' + row.opt + ']</span>' +
                   '</div>' +
-                  '<div class="q-acts">' +
-                    '<button type="button" class="btn-q-call" onclick="callOne(' + row.num + ')">호출</button>' +
-                    '<button type="button" class="btn-q-del" onclick="delOne(' + row.num + ')">취소</button>' +
+                  '<div>' +
+                    '<button type="button" class="btn-del-secret" style="display:' + delBtnDisplay + ';" onclick="delOne(' + row.num + ')">삭제</button>' +
                   '</div>' +
                 '</div>';
       }
