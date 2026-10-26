@@ -3,432 +3,380 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>할로윈 타투 부스 실시간 웨이팅</title>
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <title>할로윈 타투 부스 웨이팅</title>
   <style>
-    :root {
-      --bg: #11131f;
-      --card-bg: #1c2035;
-      --orange: #ff7828;
-      --orange-glow: rgba(255, 120, 40, 0.35);
-      --purple: #8b5cf6;
-      --green: #10b981;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --border: #2e3553;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+    body { background-color: #121420; color: #f3f4f6; display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
+    .container { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 14px; padding-bottom: 30px; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
-    .app-container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }
+    /* 헤더 */
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2b324b; padding-bottom: 12px; }
+    .title { font-size: 1.15rem; font-weight: 800; color: #ff7828; }
+    .mode-box { display: flex; background: #1e2238; border-radius: 20px; padding: 3px; }
+    .mode-btn { border: none; background: transparent; color: #9ca3af; font-size: 0.8rem; font-weight: 700; padding: 6px 14px; border-radius: 16px; cursor: pointer; }
+    .mode-btn.active { background: #ff7828; color: #ffffff; }
 
-    /* 상단 헤더 */
-    .header-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-    .brand { font-size: 1.2rem; font-weight: 800; color: var(--orange); display: flex; align-items: center; gap: 6px; }
-    .role-toggle { display: flex; background: var(--card-bg); border-radius: 999px; padding: 3px; border: 1px solid var(--border); }
-    .role-btn { border: none; background: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 700; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
-    .role-btn.active { background: var(--orange); color: #fff; }
+    /* 전광판 */
+    .board { background: #1c2035; border: 1px solid #2e3553; border-radius: 18px; padding: 18px; text-align: center; }
+    .board-tag { display: inline-block; font-size: 0.75rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 20px; margin-bottom: 8px; }
+    .call-num { font-size: 3.2rem; font-weight: 900; color: #ff7828; line-height: 1.1; margin: 4px 0; }
+    .call-name { font-size: 1.05rem; font-weight: 700; color: #ffffff; min-height: 1.3rem; }
+    .board-stats { display: flex; justify-content: space-around; border-top: 1px dashed #2e3553; padding-top: 12px; margin-top: 12px; }
+    .stat-val { font-size: 1.25rem; font-weight: 800; color: #ffffff; }
+    .stat-lbl { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
 
-    /* 전광판 카드 */
-    .status-board {
-      background: linear-gradient(145deg, #1f2540, #161a2e);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    }
-    .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--green);
-      background: rgba(16, 185, 129, 0.12);
-      padding: 4px 12px;
-      border-radius: 999px;
-      margin-bottom: 8px;
-    }
-    .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+    /* 카드 공통 */
+    .card { background: #1c2035; border: 1px solid #2e3553; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .card-title { font-size: 1rem; font-weight: 800; color: #ffffff; }
 
-    .calling-box { margin: 10px 0; }
-    .calling-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
-    .calling-num { font-size: 3.5rem; font-weight: 900; color: var(--orange); letter-spacing: -1px; text-shadow: 0 0 20px var(--orange-glow); line-height: 1.1; margin: 4px 0; }
-    .calling-name { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    /* 입력폼 */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.8rem; font-weight: 700; color: #9ca3af; }
+    .form-group input { background: #121422; border: 1px solid #2e3553; border-radius: 10px; padding: 12px; font-size: 1rem; color: #ffffff; outline: none; }
+    
+    /* 금액/수량 선택 */
+    .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .option-item { background: #121422; border: 1px solid #2e3553; border-radius: 12px; padding: 12px 6px; text-align: center; cursor: pointer; }
+    .option-item .cnt { font-size: 0.9rem; font-weight: 800; color: #ffffff; }
+    .option-item .prc { font-size: 0.75rem; font-weight: 700; color: #9ca3af; margin-top: 4px; }
+    .option-item.active { border-color: #ff7828; background: rgba(255, 120, 40, 0.15); }
+    .option-item.active .cnt { color: #ff7828; }
+    .option-item.active .prc { color: #fde047; }
 
-    .stats-row { display: flex; justify-content: space-around; border-top: 1px dashed var(--border); padding-top: 14px; margin-top: 14px; }
-    .stat-item .val { font-size: 1.3rem; font-weight: 800; color: #fff; }
-    .stat-item .lbl { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .btn-main { background: #ff7828; color: #ffffff; border: none; border-radius: 12px; padding: 15px; font-size: 1.05rem; font-weight: 800; cursor: pointer; }
+    .btn-main:active { filter: brightness(0.9); }
 
-    /* 손님 티켓 */
-    .my-ticket-card {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(255, 120, 40, 0.18));
-      border: 1px solid var(--purple);
-      border-radius: 20px;
-      padding: 22px;
-      text-align: center;
-    }
-    .ticket-head { font-size: 0.85rem; color: #d8b4fe; font-weight: 700; margin-bottom: 4px; }
-    .ticket-num { font-size: 3.2rem; font-weight: 900; color: #fff; line-height: 1; margin: 8px 0; }
-    .ticket-option-info { font-size: 0.95rem; color: #fde047; font-weight: 700; margin-bottom: 8px; }
-    .waiting-ahead { font-size: 1.15rem; color: var(--orange); font-weight: 800; margin-bottom: 12px; }
-    .ticket-alert-box { background: rgba(0,0,0,0.35); border-radius: 12px; padding: 12px; font-size: 0.85rem; line-height: 1.5; color: #e5e7eb; }
-    .ticket-alert-box.ready { background: var(--orange); color: #fff; font-weight: 800; }
+    /* 내 번호표 카드 */
+    .ticket-card { background: #25203b; border: 1px solid #8b5cf6; border-radius: 18px; padding: 20px; text-align: center; display: flex; flex-direction: column; gap: 10px; }
+    .my-num { font-size: 3rem; font-weight: 900; color: #ffffff; line-height: 1; }
+    .my-choice { font-size: 0.95rem; font-weight: 700; color: #fde047; }
+    .my-wait { font-size: 1.15rem; font-weight: 800; color: #ff7828; }
+    .my-msg { background: rgba(0, 0, 0, 0.35); border-radius: 10px; padding: 12px; font-size: 0.85rem; line-height: 1.4; color: #e5e7eb; }
+    .my-msg.ready { background: #ff7828; color: #ffffff; font-weight: 800; }
+    .btn-cancel { background: transparent; border: none; color: #9ca3af; font-size: 0.8rem; text-decoration: underline; cursor: pointer; margin-top: 6px; }
 
-    /* 입력 폼 */
-    .form-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-    .form-title { font-size: 1.1rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
-    .field-group { display: flex; flex-direction: column; gap: 8px; }
-    .field-group label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); }
-    .field-group input { background: #121422; border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 1rem; color: #fff; outline: none; }
-    .field-group input:focus { border-color: var(--orange); }
-
-    .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .price-btn {
-      background: #121422;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-    }
-    .price-btn .p-count { font-size: 0.95rem; font-weight: 800; color: var(--text); }
-    .price-btn .p-price { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
-    .price-btn.active {
-      border-color: var(--orange);
-      background: rgba(255, 120, 40, 0.15);
-    }
-    .price-btn.active .p-count { color: var(--orange); }
-    .price-btn.active .p-price { color: #fde047; }
-
-    .btn-submit { background: var(--orange); color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 1.05rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px var(--orange-glow); }
-
-    /* 관리자 뷰 */
-    .admin-panel { display: flex; flex-direction: column; gap: 14px; }
-    .admin-action-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
-    .btn-call { background: var(--orange); color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 1.1rem; font-weight: 800; cursor: pointer; }
-    .btn-reset { background: #262c45; color: #9ca3af; border: none; border-radius: 14px; padding: 16px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
-    .queue-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 18px; }
-    .queue-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .queue-list { display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; }
-    .queue-item { display: flex; justify-content: space-between; align-items: center; background: #121422; border-radius: 12px; padding: 12px; border: 1px solid var(--border); }
-    .queue-info .q-num { font-size: 1.2rem; font-weight: 900; color: var(--orange); }
-    .queue-info .q-name { font-size: 0.95rem; font-weight: 700; margin-left: 6px; }
-    .queue-info .q-order { font-size: 0.8rem; color: #fde047; font-weight: 700; margin-left: 6px; }
-    .queue-actions button { border: none; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-    .btn-item-call { background: var(--green); color: #fff; }
-    .btn-item-del { background: #374151; color: #9ca3af; margin-left: 4px; }
-    .empty-msg { text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 20px 0; }
+    /* 관리자 패널 */
+    .admin-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
+    .btn-call { background: #ff7828; color: #ffffff; border: none; border-radius: 12px; padding: 14px; font-size: 1rem; font-weight: 800; cursor: pointer; }
+    .btn-reset { background: #2e3553; color: #9ca3af; border: none; border-radius: 12px; padding: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+    .queue-box { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; }
+    .queue-row { display: flex; justify-content: space-between; align-items: center; background: #121422; border: 1px solid #2e3553; border-radius: 10px; padding: 10px 12px; }
+    .q-left { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+    .q-badge { font-size: 1.1rem; font-weight: 900; color: #ff7828; }
+    .q-name { font-weight: 700; color: #ffffff; }
+    .q-opt { font-size: 0.75rem; color: #fde047; font-weight: 600; }
+    .q-acts button { border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+    .btn-q-call { background: #10b981; color: #ffffff; }
+    .btn-q-del { background: #374151; color: #9ca3af; margin-left: 4px; }
   </style>
 </head>
 <body>
-<div class="app-container">
+<div class="container">
 
-  <!-- 헤더 -->
-  <header class="header-nav">
-    <div class="brand">🎃 타투부스 웨이팅</div>
-    <div class="role-toggle">
-      <button class="role-btn active" id="btnModeGuest" onclick="setMode('guest')">손님용</button>
-      <button class="role-btn" id="btnModeAdmin" onclick="setMode('admin')">부스관리</button>
+  <!-- 상단 모드 전환 -->
+  <header class="header">
+    <div class="title">🎃 타투부스 웨이팅</div>
+    <div class="mode-box">
+      <button type="button" class="mode-btn active" id="btnGuest" onclick="changeMode('guest')">손님용</button>
+      <button type="button" class="mode-btn" id="btnAdmin" onclick="changeMode('admin')">관리자</button>
     </div>
   </header>
 
   <!-- 실시간 전광판 -->
-  <section class="status-board">
-    <div class="live-badge"><span class="live-dot"></span> 실시간 전광판</div>
-    <div class="calling-box">
-      <div class="calling-label">지금 부스로 오세요!</div>
-      <div class="calling-num" id="liveCallingNum">0번</div>
-      <div class="calling-name" id="liveCallingName">부스 준비 중</div>
-    </div>
-    <div class="stats-row">
-      <div class="stat-item">
-        <div class="val" id="liveWaitCount">0명</div>
-        <div class="lbl">현재 대기 팀</div>
+  <section class="board">
+    <div class="board-tag">부스 운영 현황</div>
+    <div class="call-num" id="liveNum">0번</div>
+    <div class="call-name" id="liveName">부스 준비 중</div>
+    <div class="board-stats">
+      <div>
+        <div class="stat-val" id="waitCount">0명</div>
+        <div class="stat-lbl">현재 대기 팀</div>
       </div>
-      <div class="stat-item">
-        <div class="val" id="liveEstTime">0분</div>
-        <div class="lbl">예상 대기 시간</div>
+      <div>
+        <div class="stat-val" id="waitTime">0분</div>
+        <div class="stat-lbl">예상 소요 시간</div>
       </div>
     </div>
   </section>
 
-  <!-- 손님 뷰: 번호표 신청 폼 -->
-  <div id="guestRegisterSection" class="form-card">
-    <div class="form-title">⚡ 줄서기 번호표 등록</div>
-    <div class="field-group">
-      <label>아이 이름 (또는 닉네임)</label>
-      <input type="text" id="inputName" placeholder="예: 수아, 민준이" maxlength="8" />
+  <!-- 1. 손님 신청 폼 -->
+  <div id="sectionForm" class="card">
+    <div class="card-title">⚡ 줄서기 등록</div>
+    <div class="form-group">
+      <label>아이 이름 (또는 별명)</label>
+      <input type="text" id="custName" placeholder="예: 수아" maxlength="8" />
     </div>
-    <div class="field-group">
+    <div class="form-group">
       <label>타투 수량 선택 (스티커는 현장에서 골라요!)</label>
-      <div class="price-grid">
-        <div class="price-btn active" onclick="selectOption(this, '타투 1장', '1,000원')">
-          <span class="p-count">타투 1장</span>
-          <span class="p-price">1,000원</span>
+      <div class="option-grid">
+        <div class="option-item active" onclick="pickOption(this, '타투 1장', '1,000원')">
+          <div class="cnt">타투 1장</div>
+          <div class="prc">1,000원</div>
         </div>
-        <div class="price-btn" onclick="selectOption(this, '타투 2장', '2,000원')">
-          <span class="p-count">타투 2장</span>
-          <span class="p-price">2,000원</span>
+        <div class="option-item" onclick="pickOption(this, '타투 2장', '2,000원')">
+          <div class="cnt">타투 2장</div>
+          <div class="prc">2,000원</div>
         </div>
-        <div class="price-btn" onclick="selectOption(this, '타투 3장', '3,000원')">
-          <span class="p-count">타투 3장</span>
-          <span class="p-price">3,000원</span>
+        <div class="option-item" onclick="pickOption(this, '타투 3장', '3,000원')">
+          <div class="cnt">타투 3장</div>
+          <div class="prc">3,000원</div>
         </div>
       </div>
     </div>
-    <button class="btn-submit" onclick="submitWaiting()">대기 번호표 발급받기</button>
+    <button type="button" class="btn-main" onclick="registerQueue()">번호표 발급받기</button>
   </div>
 
-  <!-- 손님 뷰: 내 티켓 화면 -->
-  <div id="guestTicketSection" class="my-ticket-card" style="display: none;">
-    <div class="ticket-head">나의 대기 번호표</div>
-    <div class="ticket-num" id="myTicketNum">#00</div>
-    <div class="ticket-option-info" id="myTicketOption">선택: 타투 1장 (1,000원)</div>
-    <div class="waiting-ahead" id="myAheadCount">내 앞 대기 0명</div>
-    <div class="ticket-alert-box" id="myStatusBox">
-      에어바운서에서 신나게 놀고 계세요!<br>실시간 전광판 번호가 되면 부스로 오시면 됩니다.
-    </div>
-    <button style="background: none; border: none; color: #9ca3af; font-size: 0.8rem; margin-top: 16px; cursor: pointer; text-decoration: underline;" onclick="cancelMyTicket()">대기 취소하기</button>
+  <!-- 2. 손님 발급 티켓 -->
+  <div id="sectionTicket" class="ticket-card" style="display: none;">
+    <div style="font-size: 0.8rem; color: #c4b5fd; font-weight: 700;">내 접수 번호</div>
+    <div class="my-num" id="myNumText">#0</div>
+    <div class="my-choice" id="myChoiceText">타투 1장 (1,000원)</div>
+    <div class="my-wait" id="myWaitText">대기 중</div>
+    <div class="my-msg" id="myMsgBox">잠시만 기다려주세요.</div>
+    <button type="button" class="btn-cancel" onclick="cancelQueue()">대기 취소하기</button>
   </div>
 
-  <!-- 부스 관리자 뷰 -->
-  <div id="adminSection" class="admin-panel" style="display: none;">
-    <div class="admin-action-row">
-      <button class="btn-call" onclick="callNextCustomer()">📢 다음 번호 호출</button>
-      <button class="btn-reset" onclick="resetAllData()">전체 초기화</button>
+  <!-- 3. 관리자 패널 -->
+  <div id="sectionAdmin" class="card" style="display: none;">
+    <div class="admin-btns">
+      <button type="button" class="btn-call" onclick="callNext()">📢 다음 번호 호출</button>
+      <button type="button" class="btn-reset" onclick="resetQueue()">초기화</button>
     </div>
-    <div class="queue-card">
-      <div class="queue-title">
-        <span>실시간 대기열</span>
-        <span style="color: var(--orange); font-size: 0.85rem;" id="adminQueueCount">총 0명</span>
-      </div>
-      <div class="queue-list" id="adminQueueList">
-        <div class="empty-msg">대기 중인 아이들이 없습니다.</div>
-      </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 700; color: #ffffff;">
+      <span>대기 목록</span>
+      <span style="color: #ff7828;" id="adminCountText">0명</span>
+    </div>
+    <div class="queue-box" id="adminList">
+      <div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>
     </div>
   </div>
 
 </div>
 
 <script>
-  let state = {
-    currentCalling: { num: 0, name: "부스 준비 중", option: "" },
-    queue: [],
-    lastIssuedNum: 0
+  var appData = {
+    currentNum: 0,
+    currentName: "부스 준비 중",
+    currentOpt: "",
+    lastNum: 0,
+    list: []
   };
 
-  let selectedOption = { count: "타투 1장", price: "1,000원" };
-  let myWaitingNum = null;
+  var curOpt = { count: "타투 1장", price: "1,000원" };
+  var myNum = null;
+  var currentMode = "guest";
 
-  // 초기화 (화면 즉시 렌더링)
-  function init() {
+  function loadData() {
     try {
-      const savedNum = localStorage.getItem("my_waiting_num");
-      if (savedNum) myWaitingNum = parseInt(savedNum);
-
-      const local = localStorage.getItem("halloween_queue_data");
-      if (local) {
-        state = JSON.parse(local);
+      var saved = localStorage.getItem("hal_app_data");
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed && typeof parsed.lastNum === "number") {
+          appData = parsed;
+        }
       }
-    } catch(e) {
-      console.log("로컬 스토리지 로드 예외 처리", e);
+      var savedNum = localStorage.getItem("hal_my_num");
+      if (savedNum) {
+        myNum = parseInt(savedNum, 10);
+      }
+    } catch (e) {}
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem("hal_app_data", JSON.stringify(appData));
+    } catch (e) {}
+  }
+
+  function changeMode(mode) {
+    currentMode = mode;
+    document.getElementById("btnGuest").className = mode === "guest" ? "mode-btn active" : "mode-btn";
+    document.getElementById("btnAdmin").className = mode === "admin" ? "mode-btn active" : "mode-btn";
+    render();
+  }
+
+  function pickOption(el, count, price) {
+    var items = document.querySelectorAll(".option-item");
+    for (var i = 0; i < items.length; i++) {
+      items[i].className = "option-item";
+    }
+    el.className = "option-item active";
+    curOpt = { count: count, price: price };
+  }
+
+  function registerQueue() {
+    var input = document.getElementById("custName");
+    var name = input.value.trim();
+    if (!name) {
+      name = "아이" + (appData.lastNum + 1);
     }
 
-    updateUI();
-  }
-
-  function setMode(mode) {
-    document.getElementById('btnModeGuest').classList.toggle('active', mode === 'guest');
-    document.getElementById('btnModeAdmin').classList.toggle('active', mode === 'admin');
-    
-    if (mode === 'admin') {
-      document.getElementById('guestRegisterSection').style.display = 'none';
-      document.getElementById('guestTicketSection').style.display = 'none';
-      document.getElementById('adminSection').style.display = 'flex';
-    } else {
-      document.getElementById('adminSection').style.display = 'none';
-      renderGuestView();
-    }
-  }
-
-  function selectOption(elem, count, price) {
-    document.querySelectorAll('.price-btn').forEach(btn => btn.classList.remove('active'));
-    elem.classList.add('active');
-    selectedOption = { count, price };
-  }
-
-  function submitWaiting() {
-    const input = document.getElementById('inputName');
-    const name = input.value.trim() || `아이${state.lastIssuedNum + 1}`;
-    
-    state.lastIssuedNum += 1;
-    const newEntry = {
-      num: state.lastIssuedNum,
+    appData.lastNum += 1;
+    var optStr = curOpt.count + " (" + curOpt.price + ")";
+    var item = {
+      num: appData.lastNum,
       name: name,
-      option: `${selectedOption.count} (${selectedOption.price})`
+      opt: optStr
     };
-    
-    state.queue.push(newEntry);
-    myWaitingNum = newEntry.num;
+
+    appData.list.push(item);
+    myNum = item.num;
+
     try {
-      localStorage.setItem("my_waiting_num", myWaitingNum);
-      localStorage.setItem("my_waiting_option", newEntry.option);
-      localStorage.setItem("halloween_queue_data", JSON.stringify(state));
-    } catch(e){}
-    
+      localStorage.setItem("hal_my_num", myNum);
+      localStorage.setItem("hal_my_opt", optStr);
+    } catch (e) {}
+
     input.value = "";
-    updateUI();
+    saveData();
+    render();
   }
 
-  function cancelMyTicket() {
+  function cancelQueue() {
     if (!confirm("대기를 취소하시겠습니까?")) return;
-    state.queue = state.queue.filter(item => item.num !== myWaitingNum);
-    myWaitingNum = null;
+    appData.list = appData.list.filter(function(i) { return i.num !== myNum; });
+    myNum = null;
     try {
-      localStorage.removeItem("my_waiting_num");
-      localStorage.removeItem("my_waiting_option");
-      localStorage.setItem("halloween_queue_data", JSON.stringify(state));
-    } catch(e){}
-    updateUI();
+      localStorage.removeItem("hal_my_num");
+      localStorage.removeItem("hal_my_opt");
+    } catch (e) {}
+    saveData();
+    render();
   }
 
-  function callNextCustomer() {
-    if (state.queue.length === 0) {
-      alert("대기 중인 사람이 없습니다.");
+  function callNext() {
+    if (appData.list.length === 0) {
+      alert("대기자가 없습니다.");
       return;
     }
-    const next = state.queue.shift();
-    state.currentCalling = { num: next.num, name: next.name, option: next.option };
-    saveState();
-    updateUI();
-    playChime();
+    var next = appData.list.shift();
+    appData.currentNum = next.num;
+    appData.currentName = next.name;
+    appData.currentOpt = next.opt;
+    saveData();
+    render();
   }
 
-  function callSpecific(num) {
-    const idx = state.queue.findIndex(item => item.num === num);
+  function callOne(num) {
+    var idx = -1;
+    for (var i = 0; i < appData.list.length; i++) {
+      if (appData.list[i].num === num) {
+        idx = i;
+        break;
+      }
+    }
     if (idx !== -1) {
-      const target = state.queue.splice(idx, 1)[0];
-      state.currentCalling = { num: target.num, name: target.name, option: target.option };
-      saveState();
-      updateUI();
-      playChime();
+      var item = appData.list.splice(idx, 1)[0];
+      appData.currentNum = item.num;
+      appData.currentName = item.name;
+      appData.currentOpt = item.opt;
+      saveData();
+      render();
     }
   }
 
-  function deleteQueue(num) {
-    state.queue = state.queue.filter(item => item.num !== num);
-    saveState();
-    updateUI();
+  function delOne(num) {
+    appData.list = appData.list.filter(function(i) { return i.num !== num; });
+    saveData();
+    render();
   }
 
-  function resetAllData() {
-    if (!confirm("정말 모든 대기열을 초기화하시겠습니까?")) return;
-    state = { currentCalling: { num: 0, name: "부스 준비 중", option: "" }, queue: [], lastIssuedNum: 0 };
-    saveState();
-    updateUI();
+  function resetQueue() {
+    if (!confirm("모든 데이터를 초기화하시겠습니까?")) return;
+    appData = {
+      currentNum: 0,
+      currentName: "부스 준비 중",
+      currentOpt: "",
+      lastNum: 0,
+      list: []
+    };
+    saveData();
+    render();
   }
 
-  function saveState() {
-    try {
-      localStorage.setItem("halloween_queue_data", JSON.stringify(state));
-    } catch(e){}
-  }
+  function render() {
+    // 1. 공통 전광판
+    document.getElementById("liveNum").innerText = appData.currentNum + "번";
+    var optText = appData.currentOpt ? " [" + appData.currentOpt + "]" : "";
+    document.getElementById("liveName").innerText = appData.currentName + optText;
+    document.getElementById("waitCount").innerText = appData.list.length + "명";
+    document.getElementById("waitTime").innerText = (appData.list.length * 3) + "분";
 
-  function updateUI() {
-    // 1. 전광판 갱신
-    document.getElementById('liveCallingNum').innerText = `${state.currentCalling.num}번`;
-    const optionText = state.currentCalling.option ? ` [${state.currentCalling.option}]` : "";
-    document.getElementById('liveCallingName').innerText = `${state.currentCalling.name}${optionText}`;
-    document.getElementById('liveWaitCount').innerText = `${state.queue.length}명`;
-    document.getElementById('liveEstTime').innerText = `${state.queue.length * 3}분`;
+    // 2. 관리자 뷰
+    if (currentMode === "admin") {
+      document.getElementById("sectionForm").style.display = "none";
+      document.getElementById("sectionTicket").style.display = "none";
+      document.getElementById("sectionAdmin").style.display = "flex";
 
-    // 2. 관리자 뷰 갱신
-    document.getElementById('adminQueueCount').innerText = `총 ${state.queue.length}명 대기`;
-    const listEl = document.getElementById('adminQueueList');
-    if (state.queue.length === 0) {
-      listEl.innerHTML = `<div class="empty-msg">대기 중인 아이들이 없습니다.</div>`;
-    } else {
-      listEl.innerHTML = state.queue.map(item => `
-        <div class="queue-item">
-          <div class="queue-info">
-            <span class="q-num">#${item.num}</span>
-            <span class="q-name">${item.name}</span>
-            <span class="q-order">[${item.option}]</span>
-          </div>
-          <div class="queue-actions">
-            <button class="btn-item-call" onclick="callSpecific(${item.num})">호출</button>
-            <button class="btn-item-del" onclick="deleteQueue(${item.num})">취소</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // 3. 손님 뷰 갱신
-    renderGuestView();
-  }
-
-  function renderGuestView() {
-    const isRegistered = myWaitingNum !== null;
-    const regSection = document.getElementById('guestRegisterSection');
-    const ticketSection = document.getElementById('guestTicketSection');
-
-    if (!isRegistered) {
-      regSection.style.display = 'flex';
-      ticketSection.style.display = 'none';
-    } else {
-      regSection.style.display = 'none';
-      ticketSection.style.display = 'block';
-
-      document.getElementById('myTicketNum').innerText = `#${myWaitingNum}`;
-      const savedOption = localStorage.getItem("my_waiting_option") || "선택 완료";
-      document.getElementById('myTicketOption').innerText = `신청: ${savedOption}`;
-      
-      const aheadIdx = state.queue.findIndex(item => item.num === myWaitingNum);
-      const isCurrent = state.currentCalling.num === myWaitingNum;
-      const statusBox = document.getElementById('myStatusBox');
-
-      if (isCurrent) {
-        document.getElementById('myAheadCount').innerText = `🎉 지금 입장하세요!`;
-        statusBox.className = "ticket-alert-box ready";
-        statusBox.innerHTML = `🌟 <strong>내 차례가 되었습니다!</strong><br>부스로 와서 스티커 고르고 예쁘게 붙여요!`;
-      } else if (aheadIdx !== -1) {
-        document.getElementById('myAheadCount').innerText = `내 앞 대기: ${aheadIdx}명`;
-        statusBox.className = "ticket-alert-box";
-        statusBox.innerHTML = aheadIdx === 0 
-          ? `👉 <strong>다음 순서입니다!</strong> 부스 근처로 와주세요.` 
-          : `에어바운서에서 신나게 놀고 계세요!<br>순서가 다가오면 화면에 바로 안내됩니다.`;
+      document.getElementById("adminCountText").innerText = appData.list.length + "명";
+      var adminList = document.getElementById("adminList");
+      if (appData.list.length === 0) {
+        adminList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>';
       } else {
-        document.getElementById('myAheadCount').innerText = `시술 완료 또는 대기 종료`;
-        statusBox.className = "ticket-alert-box";
-        statusBox.innerHTML = `타투 시술이 완료되었거나 취소되었습니다.`;
+        var html = "";
+        for (var i = 0; i < appData.list.length; i++) {
+          var row = appData.list[i];
+          html += '<div class="queue-row">' +
+                    '<div class="q-left">' +
+                      '<span class="q-badge">#' + row.num + '</span>' +
+                      '<span class="q-name">' + row.name + '</span>' +
+                      '<span class="q-opt">[' + row.opt + ']</span>' +
+                    '</div>' +
+                    '<div class="q-acts">' +
+                      '<button type="button" class="btn-q-call" onclick="callOne(' + row.num + ')">호출</button>' +
+                      '<button type="button" class="btn-q-del" onclick="delOne(' + row.num + ')">취소</button>' +
+                    '</div>' +
+                  '</div>';
+        }
+        adminList.innerHTML = html;
+      }
+      return;
+    }
+
+    // 3. 손님 뷰
+    document.getElementById("sectionAdmin").style.display = "none";
+    if (myNum === null) {
+      document.getElementById("sectionForm").style.display = "flex";
+      document.getElementById("sectionTicket").style.display = "none";
+    } else {
+      document.getElementById("sectionForm").style.display = "none";
+      document.getElementById("sectionTicket").style.display = "flex";
+
+      document.getElementById("myNumText").innerText = "#" + myNum;
+      var savedOpt = localStorage.getItem("hal_my_opt") || "선택 완료";
+      document.getElementById("myChoiceText").innerText = savedOpt;
+
+      var ahead = -1;
+      for (var j = 0; j < appData.list.length; j++) {
+        if (appData.list[j].num === myNum) {
+          ahead = j;
+          break;
+        }
+      }
+
+      var msgBox = document.getElementById("myMsgBox");
+      var waitText = document.getElementById("myWaitText");
+
+      if (appData.currentNum === myNum) {
+        waitText.innerText = "🎉 지금 바로 입장하세요!";
+        msgBox.className = "my-msg ready";
+        msgBox.innerHTML = "내 차례가 되었습니다!<br>부스로 와서 스티커 고르고 예쁘게 붙여요!";
+      } else if (ahead !== -1) {
+        waitText.innerText = "내 앞 대기: " + ahead + "명";
+        msgBox.className = "my-msg";
+        msgBox.innerHTML = ahead === 0
+          ? "👉 <strong>다음 순서입니다!</strong> 부스 근처로 와주세요."
+          : "에어바운서에서 신나게 놀고 계세요!<br>순서가 다가오면 화면에 바로 안내됩니다.";
+      } else {
+        waitText.innerText = "시술 완료 또는 취소";
+        msgBox.className = "my-msg";
+        msgBox.innerHTML = "타투 부스 이용이 완료되었습니다.";
       }
     }
   }
 
-  function playChime() {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-      osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.6);
-    } catch(e){}
-  }
-
-  // 문서 로드 완료 시 즉시 실행
-  document.addEventListener("DOMContentLoaded", init);
-  window.onload = init;
+  loadData();
+  render();
 </script>
 </body>
 </html>
