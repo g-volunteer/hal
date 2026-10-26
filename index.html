@@ -72,7 +72,7 @@
     <button type="button" class="mode-switch-btn" id="modeBtn" onclick="switchViewMode()">⚙️ 관리자 모드</button>
   </header>
 
-  <!-- 1. 상단: 현재 시술 현황 전광판 (공통) -->
+  <!-- 1. 상단: 현재 시술 현황 전광판 -->
   <section class="board">
     <div class="board-tag" id="statusBadge">지금 시술 중!</div>
     <div class="call-num" id="liveNum">0번</div>
@@ -80,9 +80,8 @@
     <div class="call-opt" id="liveOpt"></div>
   </section>
 
-  <!-- ==================== 손님 화면 (기본 활성화) ==================== -->
+  <!-- ==================== 손님 화면 ==================== -->
   <div id="guestView" style="display: flex; flex-direction: column; gap: 14px;">
-    <!-- 번호표 등록 폼 -->
     <div class="card">
       <div class="card-title">⚡ 줄서기 번호표 등록</div>
       <div class="form-group">
@@ -121,7 +120,7 @@
     </div>
   </div>
 
-  <!-- ==================== 관리자 화면 (비번 입력 시 진입) ==================== -->
+  <!-- ==================== 관리자 화면 ==================== -->
   <div id="adminView" style="display: none; flex-direction: column; gap: 14px;">
     <!-- 관리자 호출 컨트롤러 -->
     <div class="card">
@@ -132,10 +131,10 @@
       </div>
     </div>
 
-    <!-- 관리자 대기 명단 (개별 취소/삭제 가능) -->
+    <!-- 관리자 대기 명단 (손님이 폰으로 등록 시 여기에도 즉시 뜸) -->
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span class="card-title">대기열 관리</span>
+        <span class="card-title">대기열 실시간 관리</span>
         <span style="color: #ff7828; font-weight: 800; font-size: 0.95rem;" id="adminWaitCountText">총 0명</span>
       </div>
       <div class="queue-box" id="adminQueueList">
@@ -147,12 +146,15 @@
 
 </div>
 
-<!-- 등록 완료 토스트 -->
 <div id="toastBox" class="toast"></div>
 
 <script>
-  var ADMIN_PIN = "0000"; // 관리자 모드 비밀번호
-  var currentView = "guest"; // 'guest' 또는 'admin'
+  // 캠핑장 전용 실시간 동기화 채널
+  const SYNC_ROOM = "g_vol_hal_2026";
+  const SYNC_URL = `https://ntfy.sh/${SYNC_ROOM}/json`;
+
+  var ADMIN_PIN = "0000";
+  var currentView = "guest";
 
   var appData = {
     currentNum: 0,
@@ -176,16 +178,20 @@
     } catch (e) {}
   }
 
-  function saveData() {
+  function saveDataAndSync() {
     try {
       localStorage.setItem("hal_tab_data", JSON.stringify(appData));
     } catch (e) {}
+    // 원격 동기화 서버로 브로드캐스트 전송
+    fetch(`https://ntfy.sh/${SYNC_ROOM}`, {
+      method: 'POST',
+      body: JSON.stringify(appData),
+      headers: { 'Title': 'HAL_SYNC' }
+    }).catch(function(err){});
   }
 
-  // 화면 전환 (손님용 ↔ 관리자용)
   function switchViewMode() {
     if (currentView === "admin") {
-      // 관리자 -> 손님 화면 복귀 (비번 불필요)
       currentView = "guest";
       document.getElementById("modeBtn").innerText = "⚙️ 관리자 모드";
       document.getElementById("modeBtn").className = "mode-switch-btn";
@@ -193,7 +199,6 @@
       document.getElementById("guestView").style.display = "flex";
       document.getElementById("adminView").style.display = "none";
     } else {
-      // 손님 -> 관리자 화면 진입 (비번 검증)
       var pin = prompt("관리자 비밀번호를 입력하세요 (기본: 0000):");
       if (pin === ADMIN_PIN) {
         currentView = "admin";
@@ -218,7 +223,7 @@
     curOpt = { count: count, price: price };
   }
 
-  // 손님 번호표 등록
+  // 손님 등록 시
   function registerQueue() {
     var input = document.getElementById("custName");
     var name = input.value.trim();
@@ -232,158 +237,3 @@
       num: appData.lastNum,
       name: name,
       opt: optStr
-    };
-
-    appData.list.push(item);
-    input.value = "";
-    saveData();
-    render();
-
-    showToast("🎉 #" + item.num + "번 " + item.name + "님 접수 완료! (대기 " + appData.list.length + "번째)");
-    playChime(600, 0.15);
-  }
-
-  // [관리자 전용] 다음 손님 호출 (비번 없이 즉시 실행)
-  function callNextDirect() {
-    if (appData.list.length === 0) {
-      alert("대기 중인 다음 손님이 없습니다.");
-      return;
-    }
-    var next = appData.list.shift();
-    appData.currentNum = next.num;
-    appData.currentName = next.name;
-    appData.currentOpt = next.opt;
-    saveData();
-    render();
-    playChime(880, 0.3);
-  }
-
-  // [관리자 전용] 시술 완료 처리
-  function finishCurrentDirect() {
-    if (appData.currentNum === 0) {
-      alert("현재 진행 중인 시술이 없습니다.");
-      return;
-    }
-    appData.currentNum = 0;
-    appData.currentName = "부스 준비 중";
-    appData.currentOpt = "";
-    saveData();
-    render();
-  }
-
-  // [관리자 전용] 개별 대기자 취소
-  function delOne(num) {
-    if (!confirm("#" + num + "번 대기자를 취소하시겠습니까?")) return;
-    appData.list = appData.list.filter(function(i) { return i.num !== num; });
-    saveData();
-    render();
-  }
-
-  // [관리자 전용] 전체 초기화
-  function resetQueue() {
-    if (!confirm("전체 번호표와 대기열을 완전히 초기화하시겠습니까?")) return;
-    appData = {
-      currentNum: 0,
-      currentName: "부스 준비 중",
-      currentOpt: "",
-      lastNum: 0,
-      list: []
-    };
-    saveData();
-    render();
-  }
-
-  function showToast(msg) {
-    var toast = document.getElementById("toastBox");
-    toast.innerText = msg;
-    toast.style.display = "block";
-    setTimeout(function() {
-      toast.style.display = "none";
-    }, 2800);
-  }
-
-  function playChime(freq, dur) {
-    try {
-      var ctx = new (window.AudioContext || window.webkitAudioContext)();
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
-      osc.start();
-      osc.stop(ctx.currentTime + dur);
-    } catch(e){}
-  }
-
-  function render() {
-    // 1. 공통 전광판 갱신
-    if (appData.currentNum > 0) {
-      document.getElementById("statusBadge").innerText = "현재 시술 중 🎨";
-      document.getElementById("statusBadge").style.background = "rgba(255, 120, 40, 0.2)";
-      document.getElementById("statusBadge").style.color = "#ff7828";
-      document.getElementById("liveNum").innerText = "#" + appData.currentNum + "번";
-      document.getElementById("liveName").innerText = appData.currentName + " 어린이";
-      document.getElementById("liveOpt").innerText = "[" + appData.currentOpt + "]";
-    } else {
-      document.getElementById("statusBadge").innerText = "부스 대기 중 💤";
-      document.getElementById("statusBadge").style.background = "rgba(16, 185, 129, 0.15)";
-      document.getElementById("statusBadge").style.color = "#10b981";
-      document.getElementById("liveNum").innerText = "-";
-      document.getElementById("liveName").innerText = "다음 손님을 호출해 주세요";
-      document.getElementById("liveOpt").innerText = "";
-    }
-
-    var waitCount = appData.list.length;
-
-    // 2. 손님 화면 대기 리스트 (조회 전용)
-    document.getElementById("guestWaitCountText").innerText = "대기 " + waitCount + "명 (약 " + (waitCount * 3) + "분)";
-    var guestList = document.getElementById("guestQueueList");
-    if (appData.list.length === 0) {
-      guestList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>';
-    } else {
-      var gHtml = "";
-      for (var i = 0; i < appData.list.length; i++) {
-        var row = appData.list[i];
-        gHtml += '<div class="queue-row">' +
-                   '<div class="q-left">' +
-                     '<span class="q-badge">#' + row.num + '</span>' +
-                     '<span class="q-name">' + row.name + '</span>' +
-                     '<span class="q-opt">[' + row.opt + ']</span>' +
-                   '</div>' +
-                   '<div style="font-size: 0.8rem; color: #9ca3af; font-weight: 700;">' + (i + 1) + '번째</div>' +
-                 '</div>';
-      }
-      guestList.innerHTML = gHtml;
-    }
-
-    // 3. 관리자 화면 대기 리스트 (취소 버튼 포함)
-    document.getElementById("adminWaitCountText").innerText = "총 " + waitCount + "명";
-    var adminList = document.getElementById("adminQueueList");
-    if (appData.list.length === 0) {
-      adminList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>';
-    } else {
-      var aHtml = "";
-      for (var j = 0; j < appData.list.length; j++) {
-        var item = appData.list[j];
-        aHtml += '<div class="queue-row">' +
-                   '<div class="q-left">' +
-                     '<span class="q-badge">#' + item.num + '</span>' +
-                     '<span class="q-name">' + item.name + '</span>' +
-                     '<span class="q-opt">[' + item.opt + ']</span>' +
-                   '</div>' +
-                   '<div>' +
-                     '<button type="button" class="btn-del" onclick="delOne(' + item.num + ')">취소</button>' +
-                   '</div>' +
-                 '</div>';
-      }
-      adminList.innerHTML = aHtml;
-    }
-  }
-
-  loadData();
-  render();
-</script>
-</body>
-</html>
