@@ -15,6 +15,21 @@
     .mode-switch-btn { border: 1px solid #374151; background: #1e2238; color: #9ca3af; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
     .mode-switch-btn.admin-on { background: #ff7828; color: #ffffff; border-color: #ff7828; }
 
+    /* 휴식/공지 배너 */
+    .notice-banner {
+      display: none;
+      background: linear-gradient(135deg, rgba(255, 120, 40, 0.2), rgba(239, 68, 68, 0.2));
+      border: 1.5px solid #ff7828;
+      border-radius: 14px;
+      padding: 14px 16px;
+      text-align: center;
+      color: #fde047;
+      font-weight: 800;
+      font-size: 1rem;
+      line-height: 1.4;
+      box-shadow: 0 4px 14px rgba(255, 120, 40, 0.2);
+    }
+
     /* 전광판 카드 (공통) */
     .board { background: #1c2035; border: 1px solid #2e3553; border-radius: 18px; padding: 18px; text-align: center; }
     .board-tag { display: inline-block; font-size: 0.75rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 12px; border-radius: 20px; margin-bottom: 6px; }
@@ -51,6 +66,14 @@
     .btn-finish:active { filter: brightness(0.9); }
     .btn-reset-all { background: #374151; color: #f87171; border: none; border-radius: 10px; padding: 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-top: 8px; }
 
+    /* 관리자 공지/메모 에디터 */
+    .quick-preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+    .preset-btn { background: #121422; border: 1px solid #2e3553; color: #d1d5db; border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+    .preset-btn:active { background: #2b324b; }
+    .notice-toggle-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+    .btn-notice-on { background: #ff7828; color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 800; cursor: pointer; }
+    .btn-notice-off { background: #2e3553; color: #9ca3af; border: none; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+
     /* 대기 리스트 */
     .queue-box { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
     .queue-row { display: flex; justify-content: space-between; align-items: center; background: #121422; border: 1px solid #2e3553; border-radius: 10px; padding: 12px 14px; }
@@ -72,6 +95,9 @@
     <div class="title" id="pageTitle">🎃 할로윈 타투스티커 부스</div>
     <button type="button" class="mode-switch-btn" id="modeBtn" onclick="switchViewMode()">⚙️ 관리자 모드</button>
   </header>
+
+  <!-- 휴식 및 안내 공지 배너 (공통 노출) -->
+  <div id="noticeBanner" class="notice-banner"></div>
 
   <!-- 1. 상단: 현재 진행 현황 전광판 -->
   <section class="board">
@@ -123,6 +149,7 @@
 
   <!-- ==================== 관리자 화면 ==================== -->
   <div id="adminView" style="display: none; flex-direction: column; gap: 14px;">
+    <!-- 관리자 호출 컨트롤러 -->
     <div class="card">
       <div class="card-title">📢 손님 호출 컨트롤</div>
       <div class="admin-controls">
@@ -131,6 +158,24 @@
       </div>
     </div>
 
+    <!-- 휴식/공지 메모 관리 -->
+    <div class="card">
+      <div class="card-title">📝 부스 공지 및 휴식시간 설정</div>
+      <div class="quick-preset-row">
+        <button type="button" class="preset-btn" onclick="setPresetMemo('☕ 30분간 잠시 쉬어갑니다! (대기 등록은 가능)')">☕ 30분 휴식</button>
+        <button type="button" class="preset-btn" onclick="setPresetMemo('🍙 점심시간입니다! (13:30부터 순번대로 시작)')">🍙 식사 시간</button>
+        <button type="button" class="preset-btn" onclick="setPresetMemo('🎨 스티커 물품 재정비 중입니다. 잠시만 기다려주세요!')">🎨 재정비 중</button>
+      </div>
+      <div class="form-group">
+        <input type="text" id="noticeInput" placeholder="손님 화면에 띄울 안내 메모를 적어주세요" maxlength="40" />
+      </div>
+      <div class="notice-toggle-btns">
+        <button type="button" class="btn-notice-on" onclick="enableNotice()">📢 공지 띄우기</button>
+        <button type="button" class="btn-notice-off" onclick="disableNotice()">공지 끄기</button>
+      </div>
+    </div>
+
+    <!-- 대기열 관리 -->
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span class="card-title">대기열 실시간 관리</span>
@@ -149,7 +194,6 @@
 
 <script>
   var ADMIN_PIN = "0000";
-  // 새로고침 시에도 유지되도록 세션 스토리지에서 모드 확인
   var currentView = sessionStorage.getItem("hal_view_mode") || "guest";
   var lastRenderedJson = "";
 
@@ -158,7 +202,9 @@
     currentName: "부스 준비 중",
     currentOpt: "",
     lastNum: 0,
-    list: []
+    list: [],
+    noticeText: "",
+    isNoticeActive: false
   };
 
   var curOpt = { count: "타투스티커 1장", price: "1,000원" };
@@ -170,6 +216,8 @@
         var parsed = JSON.parse(saved);
         if (parsed && typeof parsed.lastNum === "number") {
           appData = parsed;
+          if (appData.noticeText === undefined) appData.noticeText = "";
+          if (appData.isNoticeActive === undefined) appData.isNoticeActive = false;
         }
       }
     } catch (e) {}
@@ -181,7 +229,6 @@
     } catch (e) {}
   }
 
-  // 모드 적용 헬퍼
   function applyViewMode() {
     if (currentView === "admin") {
       document.getElementById("modeBtn").innerText = "👤 손님 화면으로";
@@ -189,6 +236,10 @@
       document.getElementById("pageTitle").innerText = "🛠️ 부스 관리자 모드";
       document.getElementById("guestView").style.display = "none";
       document.getElementById("adminView").style.display = "flex";
+      // 관리자 화면 공지 입력창에 현재 문구 복원
+      if (document.getElementById("noticeInput")) {
+        document.getElementById("noticeInput").value = appData.noticeText || "";
+      }
     } else {
       document.getElementById("modeBtn").innerText = "⚙️ 관리자 모드";
       document.getElementById("modeBtn").className = "mode-switch-btn";
@@ -214,6 +265,31 @@
       }
     }
     render(true);
+  }
+
+  /* 공지/휴식 관련 함수 */
+  function setPresetMemo(text) {
+    document.getElementById("noticeInput").value = text;
+  }
+
+  function enableNotice() {
+    var val = document.getElementById("noticeInput").value.trim();
+    if (!val) {
+      alert("안내할 공지 문구를 입력해 주세요.");
+      return;
+    }
+    appData.noticeText = val;
+    appData.isNoticeActive = true;
+    saveData();
+    render(true);
+    showToast("📢 공지가 화면에 등록되었습니다!");
+  }
+
+  function disableNotice() {
+    appData.isNoticeActive = false;
+    saveData();
+    render(true);
+    showToast("공지 배너를 내렸습니다.");
   }
 
   function pickOption(el, count, price) {
@@ -263,7 +339,6 @@
     playChime(880, 0.3);
   }
 
-  // '완료' 버튼 처리
   function finishCurrentDirect() {
     if (appData.currentNum === 0) {
       alert("현재 진행 중인 손님이 없습니다.");
@@ -290,7 +365,9 @@
       currentName: "부스 준비 중",
       currentOpt: "",
       lastNum: 0,
-      list: []
+      list: [],
+      noticeText: "",
+      isNoticeActive: false
     };
     saveData();
     render(true);
@@ -326,6 +403,15 @@
       return;
     }
     lastRenderedJson = currentJson;
+
+    // 0. 공지 배너 렌더링
+    var banner = document.getElementById("noticeBanner");
+    if (appData.isNoticeActive && appData.noticeText) {
+      banner.innerText = appData.noticeText;
+      banner.style.display = "block";
+    } else {
+      banner.style.display = "none";
+    }
 
     // 1. 공통 상단 전광판
     var badge = document.getElementById("statusBadge");
@@ -402,7 +488,7 @@
   });
 
   loadData();
-  applyViewMode(); // 새로고침 시 저장된 모드(관리자/손님) 즉시 복원
+  applyViewMode();
   render(true);
 </script>
 </body>
