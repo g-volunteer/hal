@@ -19,7 +19,7 @@
       display: flex;
       justify-content: center;
       padding: 8px 10px;
-      overflow-y: auto; /* 창이 너무 작아지면 전체 스크롤 허용 */
+      overflow-y: auto;
       overflow-x: hidden;
     }
 
@@ -42,7 +42,8 @@
       flex-shrink: 0;
     }
     .title { font-size: 1.1rem; font-weight: 800; color: #ff7828; }
-    .mode-switch-btn {
+    .header-right { display: flex; gap: 6px; align-items: center; }
+    .header-btn {
       border: 1px solid #374151;
       background: #1e2238;
       color: #9ca3af;
@@ -52,9 +53,10 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    .mode-switch-btn.admin-on { background: #ff7828; color: #ffffff; border-color: #ff7828; }
+    .header-btn.admin-on { background: #ff7828; color: #ffffff; border-color: #ff7828; }
+    .header-btn.settle-btn { background: #059669; color: #ffffff; border-color: #10b981; }
 
-    /* 고대비 굵은 공지 배너 */
+    /* 공지 배너 */
     .notice-banner {
       display: none;
       background: #ff5722;
@@ -84,7 +86,6 @@
       min-height: 0;
     }
 
-    /* 가로 모드 또는 가로폭 680px 이상 */
     @media (orientation: landscape) and (min-height: 380px), (min-width: 680px) {
       .content-area {
         grid-template-columns: 1.1fr 0.9fr;
@@ -110,7 +111,7 @@
     }
     .card-title { font-size: 0.88rem; font-weight: 800; color: #ffffff; }
 
-    /* 전광판 (슬림화) */
+    /* 전광판 */
     .board {
       background: #171b2d;
       border: 1px solid #28304f;
@@ -132,7 +133,6 @@
     .call-name { font-size: 0.92rem; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .call-opt { font-size: 0.75rem; color: #fde047; font-weight: 700; }
 
-    /* 등록 폼 카드 (절대 찌그러지지 않도록 flex-shrink: 0 설정) */
     .form-card {
       flex-shrink: 0 !important;
       display: flex;
@@ -168,7 +168,6 @@
     .option-item.active .cnt { color: #ff7828; }
     .option-item.active .prc { color: #fde047; }
 
-    /* 번호표 등록 버튼: 항상 시원하게 보이도록 높이 및 가시성 고정 */
     .btn-main {
       background: #10b981;
       color: #ffffff;
@@ -185,7 +184,7 @@
     /* 대기 리스트 카드 */
     .queue-card-wrapper {
       flex: 1;
-      min-height: 120px; /* 최소 높이 보장 */
+      min-height: 120px;
       display: flex;
       flex-direction: column;
     }
@@ -233,7 +232,7 @@
     .q-opt { font-size: 0.72rem; color: #fde047; font-weight: 600; }
     .btn-del { background: #374151; color: #ef4444; border: none; padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
 
-    /* 관리자 전용 */
+    /* 관리자 3단 컨트롤 (호출, 완료, 패스) */
     .admin-current-info {
       background: #0f121e;
       border: 1px solid #28304f;
@@ -244,9 +243,10 @@
       font-weight: 700;
       color: #fde047;
     }
-    .admin-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
-    .btn-call { background: #ff7828; color: #ffffff; border: none; border-radius: 8px; padding: 10px; font-size: 0.92rem; font-weight: 800; cursor: pointer; }
-    .btn-finish { background: #28304f; color: #e5e7eb; border: none; border-radius: 8px; padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+    .admin-controls { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 6px; }
+    .btn-call { background: #ff7828; color: #ffffff; border: none; border-radius: 8px; padding: 10px; font-size: 0.9rem; font-weight: 800; cursor: pointer; }
+    .btn-finish { background: #059669; color: #ffffff; border: none; border-radius: 8px; padding: 10px; font-size: 0.85rem; font-weight: 800; cursor: pointer; }
+    .btn-pass { background: #4b5563; color: #fca5a5; border: none; border-radius: 8px; padding: 10px; font-size: 0.85rem; font-weight: 800; cursor: pointer; }
 
     .quick-preset-row { display: flex; gap: 4px; flex-wrap: wrap; }
     .preset-btn { background: #0f121e; border: 1px solid #28304f; color: #d1d5db; border-radius: 6px; padding: 4px 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
@@ -273,6 +273,67 @@
       text-align: center;
       white-space: nowrap;
     }
+
+    /* 정산 모달 팝업 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-box {
+      background: #171b2d;
+      border: 1px solid #28304f;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 440px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #28304f; padding-bottom: 8px; }
+    .modal-title { font-size: 1.1rem; font-weight: 800; color: #10b981; }
+    .modal-close { background: transparent; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer; font-weight: 800; }
+    .settle-summary {
+      background: #0f121e;
+      border: 1px solid #28304f;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+    }
+    .settle-sum-amount { font-size: 1.8rem; font-weight: 900; color: #ffd54f; }
+    .settle-sum-detail { font-size: 0.82rem; color: #9ca3af; display: flex; justify-content: space-around; border-top: 1px dashed #28304f; padding-top: 8px; margin-top: 4px; }
+    .settle-sum-detail strong { color: #ffffff; }
+    .settle-list-box {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 240px;
+      padding-right: 2px;
+    }
+    .settle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f121e;
+      border: 1px solid #28304f;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+    .settle-row.pass-item { opacity: 0.55; text-decoration: line-through; }
   </style>
 </head>
 <body>
@@ -281,7 +342,10 @@
   <!-- 헤더 -->
   <header class="header">
     <div class="title" id="pageTitle">🎃 할로윈 타투스티커</div>
-    <button type="button" class="mode-switch-btn" id="modeBtn" onclick="switchViewMode()">⚙️ 관리자 모드</button>
+    <div class="header-right">
+      <button type="button" class="header-btn settle-btn" id="settleMenuBtn" style="display:none;" onclick="openSettleModal()">📊 정산 내역</button>
+      <button type="button" class="header-btn" id="modeBtn" onclick="switchViewMode()">⚙️ 관리자 모드</button>
+    </div>
   </header>
 
   <!-- 강조 공지 배너 -->
@@ -289,7 +353,6 @@
 
   <!-- ==================== 손님 화면 ==================== -->
   <div id="guestView" class="content-area">
-    <!-- 좌측 컬럼: 전광판 + 등록 폼 -->
     <div class="col-left">
       <section class="board">
         <div class="board-tag" id="statusBadge">지금 진행 중!</div>
@@ -298,7 +361,6 @@
         <div class="call-opt" id="liveOpt"></div>
       </section>
 
-      <!-- 폼 카드가 잘리지 않도록 크기 고정 -->
       <div class="card form-card">
         <div class="form-group">
           <label>원하는 닉네임 (또는 이름)</label>
@@ -307,15 +369,15 @@
         <div class="form-group">
           <label>타투스티커 수량 선택</label>
           <div class="option-grid">
-            <div class="option-item active" onclick="pickOption(this, '타투스티커 1장', '1,000원')">
+            <div class="option-item active" onclick="pickOption(this, '타투스티커 1장', 1000)">
               <div class="cnt">타투 1장</div>
               <div class="prc">1,000원</div>
             </div>
-            <div class="option-item" onclick="pickOption(this, '타투스티커 2장', '2,000원')">
+            <div class="option-item" onclick="pickOption(this, '타투스티커 2장', 2000)">
               <div class="cnt">타투 2장</div>
               <div class="prc">2,000원</div>
             </div>
-            <div class="option-item" onclick="pickOption(this, '타투스티커 3장', '3,000원')">
+            <div class="option-item" onclick="pickOption(this, '타투스티커 3장', 3000)">
               <div class="cnt">타투 3장</div>
               <div class="prc">3,000원</div>
             </div>
@@ -325,7 +387,6 @@
       </div>
     </div>
 
-    <!-- 우측 컬럼: 롤링 대기 명단 -->
     <div class="col-right">
       <div class="card queue-card-wrapper">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -343,7 +404,6 @@
 
   <!-- ==================== 관리자 화면 ==================== -->
   <div id="adminView" class="content-area" style="display: none;">
-    <!-- 좌측 컬럼: 호출 컨트롤 + 공지 설정 -->
     <div class="col-left">
       <section class="board">
         <div class="board-tag" id="adminStatusBadge">지금 진행 중!</div>
@@ -352,11 +412,13 @@
         <div class="call-opt" id="adminLiveOpt"></div>
       </section>
 
+      <!-- 관리자 3단 컨트롤: 호출, 완료, 패스 -->
       <div class="card form-card">
         <div class="admin-current-info" id="adminCurrentInfo">현재 대기 중 (호출 대기)</div>
         <div class="admin-controls">
-          <button type="button" class="btn-call" onclick="callNextDirect()">📢 다음 손님 호출</button>
-          <button type="button" class="btn-finish" onclick="finishCurrentDirect()">완료</button>
+          <button type="button" class="btn-call" onclick="callNextDirect()">📢 다음 호출</button>
+          <button type="button" class="btn-finish" onclick="finishCurrentWithSettle(true)">완료</button>
+          <button type="button" class="btn-pass" onclick="finishCurrentWithSettle(false)">패스</button>
         </div>
       </div>
 
@@ -374,7 +436,6 @@
       </div>
     </div>
 
-    <!-- 우측 컬럼: 대기 취소 관리 -->
     <div class="col-right">
       <div class="card queue-card-wrapper">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -391,6 +452,31 @@
 
 </div>
 
+<!-- 정산 내역 모달 팝업 -->
+<div id="settleModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">📊 정산 및 판매 실적</span>
+      <button type="button" class="modal-close" onclick="closeSettleModal()">✕</button>
+    </div>
+    
+    <div class="settle-summary">
+      <div style="font-size: 0.75rem; color: #9ca3af; font-weight: 700;">총 판매 수익금</div>
+      <div class="settle-sum-amount" id="settleTotalAmount">0원</div>
+      <div class="settle-sum-detail">
+        <div>완료: <strong id="settleCountDone">0건</strong></div>
+        <div>판매수량: <strong id="settleTotalSheets">0장</strong></div>
+        <div>패스(제외): <strong id="settleCountPass" style="color:#fca5a5;">0건</strong></div>
+      </div>
+    </div>
+
+    <div style="font-size: 0.8rem; font-weight: 700; color: #ffffff;">상세 처리 목록</div>
+    <div class="settle-list-box" id="settleListBox">
+      <div style="text-align:center; color:#9ca3af; font-size:0.78rem; padding:20px 0;">완료된 내역이 없습니다.</div>
+    </div>
+  </div>
+</div>
+
 <div id="toastBox" class="toast"></div>
 
 <script>
@@ -402,13 +488,16 @@
     currentNum: 0,
     currentName: "준비 중",
     currentOpt: "",
+    currentPrice: 0,
+    currentSheets: 0,
     lastNum: 0,
     list: [],
     noticeText: "",
-    isNoticeActive: false
+    isNoticeActive: false,
+    settlement: [] // 정산 데이터 보관: { num, name, opt, price, sheets, status: 'DONE'|'PASS', time }
   };
 
-  var curOpt = { count: "타투스티커 1장", price: "1,000원" };
+  var curOpt = { count: "타투스티커 1장", price: 1000, sheets: 1 };
 
   function loadData() {
     try {
@@ -419,6 +508,7 @@
           appData = parsed;
           if (appData.noticeText === undefined) appData.noticeText = "";
           if (appData.isNoticeActive === undefined) appData.isNoticeActive = false;
+          if (!Array.isArray(appData.settlement)) appData.settlement = [];
         }
       }
     } catch (e) {}
@@ -433,7 +523,8 @@
   function applyViewMode() {
     if (currentView === "admin") {
       document.getElementById("modeBtn").innerText = "👤 손님 화면";
-      document.getElementById("modeBtn").className = "mode-switch-btn admin-on";
+      document.getElementById("modeBtn").className = "header-btn admin-on";
+      document.getElementById("settleMenuBtn").style.display = "block";
       document.getElementById("pageTitle").innerText = "🛠️ 관리자 모드";
       document.getElementById("guestView").style.display = "none";
       document.getElementById("adminView").style.display = "grid";
@@ -442,7 +533,8 @@
       }
     } else {
       document.getElementById("modeBtn").innerText = "⚙️ 관리자 모드";
-      document.getElementById("modeBtn").className = "mode-switch-btn";
+      document.getElementById("modeBtn").className = "header-btn";
+      document.getElementById("settleMenuBtn").style.display = "none";
       document.getElementById("pageTitle").innerText = "🎃 할로윈 타투스티커";
       document.getElementById("guestView").style.display = "grid";
       document.getElementById("adminView").style.display = "none";
@@ -465,6 +557,153 @@
       }
     }
     render(true);
+  }
+
+  function pickOption(el, count, price) {
+    var items = document.querySelectorAll(".option-item");
+    for (var i = 0; i < items.length; i++) {
+      items[i].className = "option-item";
+    }
+    el.className = "option-item active";
+    var sheets = price / 1000;
+    curOpt = { count: count, price: price, sheets: sheets };
+  }
+
+  function registerQueue() {
+    var input = document.getElementById("custName");
+    var name = input.value.trim();
+    if (!name) {
+      name = "귀요미" + (appData.lastNum + 1);
+    }
+
+    appData.lastNum += 1;
+    var optStr = curOpt.count + " (" + curOpt.price.toLocaleString() + "원)";
+    var item = {
+      num: appData.lastNum,
+      name: name,
+      opt: optStr,
+      price: curOpt.price,
+      sheets: curOpt.sheets
+    };
+
+    appData.list.push(item);
+    input.value = "";
+    saveData();
+    render(true);
+
+    showToast("🎉 #" + item.num + "번 " + item.name + " 님 접수 완료!");
+    playChime(600, 0.15);
+  }
+
+  function callNextDirect() {
+    if (appData.list.length === 0) {
+      alert("다음 손님이 없습니다.");
+      return;
+    }
+    var next = appData.list.shift();
+    appData.currentNum = next.num;
+    appData.currentName = next.name;
+    appData.currentOpt = next.opt;
+    appData.currentPrice = next.price || 1000;
+    appData.currentSheets = next.sheets || 1;
+    saveData();
+    render(true);
+    playChime(880, 0.3);
+  }
+
+  // 완료(정산 포함) 또는 패스(정산 제외) 처리
+  function finishCurrentWithSettle(isDone) {
+    if (appData.currentNum === 0) {
+      alert("진행 중인 손님이 없습니다.");
+      return;
+    }
+
+    var now = new Date();
+    var timeStr = (now.getHours() < 10 ? '0' : '') + now.getHours() + ':' + 
+                  (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+
+    // 정산 내역 객체 생성
+    var settleRecord = {
+      num: appData.currentNum,
+      name: appData.currentName,
+      opt: appData.currentOpt,
+      price: isDone ? (appData.currentPrice || 1000) : 0,
+      sheets: isDone ? (appData.currentSheets || 1) : 0,
+      status: isDone ? 'DONE' : 'PASS',
+      time: timeStr
+    };
+
+    appData.settlement.push(settleRecord);
+
+    if (isDone) {
+      showToast("💰 #" + appData.currentNum + "번 완료 (+ " + settleRecord.price.toLocaleString() + "원 정산)");
+    } else {
+      showToast("⏩ #" + appData.currentNum + "번 패스 (정산 제외)");
+    }
+
+    // 상태 초기화
+    appData.currentNum = 0;
+    appData.currentName = "준비 중";
+    appData.currentOpt = "";
+    appData.currentPrice = 0;
+    appData.currentSheets = 0;
+
+    saveData();
+    render(true);
+  }
+
+  // 정산 모달 열기 및 계산
+  function openSettleModal() {
+    var totalAmount = 0;
+    var totalSheets = 0;
+    var countDone = 0;
+    var countPass = 0;
+    var listHtml = "";
+
+    var sList = appData.settlement || [];
+
+    for (var i = sList.length - 1; i >= 0; i--) {
+      var item = sList[i];
+      if (item.status === 'DONE') {
+        totalAmount += item.price;
+        totalSheets += item.sheets;
+        countDone++;
+        listHtml += '<div class="settle-row">' +
+                      '<div>' +
+                        '<span>' + item.time + '</span> ' +
+                        '<strong>#' + item.num + ' ' + item.name + '</strong>' +
+                      '</div>' +
+                      '<div style="color:#10b981; font-weight:800;">+' + item.price.toLocaleString() + '원</div>' +
+                    '</div>';
+      } else {
+        countPass++;
+        listHtml += '<div class="settle-row pass-item">' +
+                      '<div>' +
+                        '<span>' + item.time + '</span> ' +
+                        '<span>#' + item.num + ' ' + item.name + '</span>' +
+                      '</div>' +
+                      '<div style="color:#fca5a5; font-weight:700;">패스 (0원)</div>' +
+                    '</div>';
+      }
+    }
+
+    document.getElementById("settleTotalAmount").innerText = totalAmount.toLocaleString() + "원";
+    document.getElementById("settleCountDone").innerText = countDone + "건";
+    document.getElementById("settleTotalSheets").innerText = totalSheets + "장";
+    document.getElementById("settleCountPass").innerText = countPass + "건";
+
+    var listBox = document.getElementById("settleListBox");
+    if (sList.length === 0) {
+      listBox.innerHTML = '<div style="text-align:center; color:#9ca3af; font-size:0.78rem; padding:20px 0;">아직 처리된 내역이 없습니다.</div>';
+    } else {
+      listBox.innerHTML = listHtml;
+    }
+
+    document.getElementById("settleModal").style.display = "flex";
+  }
+
+  function closeSettleModal() {
+    document.getElementById("settleModal").style.display = "none";
   }
 
   function setPresetMemo(text) {
@@ -491,65 +730,6 @@
     showToast("공지 배너를 내렸습니다.");
   }
 
-  function pickOption(el, count, price) {
-    var items = document.querySelectorAll(".option-item");
-    for (var i = 0; i < items.length; i++) {
-      items[i].className = "option-item";
-    }
-    el.className = "option-item active";
-    curOpt = { count: count, price: price };
-  }
-
-  function registerQueue() {
-    var input = document.getElementById("custName");
-    var name = input.value.trim();
-    if (!name) {
-      name = "귀요미" + (appData.lastNum + 1);
-    }
-
-    appData.lastNum += 1;
-    var optStr = curOpt.count + " (" + curOpt.price + ")";
-    var item = {
-      num: appData.lastNum,
-      name: name,
-      opt: optStr
-    };
-
-    appData.list.push(item);
-    input.value = "";
-    saveData();
-    render(true);
-
-    showToast("🎉 #" + item.num + "번 " + item.name + " 님 접수 완료!");
-    playChime(600, 0.15);
-  }
-
-  function callNextDirect() {
-    if (appData.list.length === 0) {
-      alert("다음 손님이 없습니다.");
-      return;
-    }
-    var next = appData.list.shift();
-    appData.currentNum = next.num;
-    appData.currentName = next.name;
-    appData.currentOpt = next.opt;
-    saveData();
-    render(true);
-    playChime(880, 0.3);
-  }
-
-  function finishCurrentDirect() {
-    if (appData.currentNum === 0) {
-      alert("진행 중인 손님이 없습니다.");
-      return;
-    }
-    appData.currentNum = 0;
-    appData.currentName = "준비 중";
-    appData.currentOpt = "";
-    saveData();
-    render(true);
-  }
-
   function delOne(num) {
     if (!confirm("#" + num + "번 대기자를 취소하시겠습니까?")) return;
     appData.list = appData.list.filter(function(i) { return i.num !== num; });
@@ -558,15 +738,18 @@
   }
 
   function resetQueue() {
-    if (!confirm("전체 대기열을 초기화하시겠습니까?")) return;
+    if (!confirm("전체 대기열과 정산 내역을 완전히 초기화하시겠습니까?")) return;
     appData = {
       currentNum: 0,
       currentName: "준비 중",
       currentOpt: "",
+      currentPrice: 0,
+      currentSheets: 0,
       lastNum: 0,
       list: [],
       noticeText: "",
-      isNoticeActive: false
+      isNoticeActive: false,
+      settlement: []
     };
     saveData();
     render(true);
