@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>🎃 할로윈 타투스티커 부스</title>
+  <title>🎃 할로윈 타투스티커</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
     
@@ -53,7 +53,7 @@
     }
     .mode-switch-btn.admin-on { background: #ff7828; color: #ffffff; border-color: #ff7828; }
 
-    /* 고대비 굵은 공지 배너 (가시성 극대화) */
+    /* 고대비 굵은 공지 배너 */
     .notice-banner {
       display: none;
       background: #ff5722;
@@ -74,7 +74,7 @@
       50% { box-shadow: 0 0 24px rgba(255, 213, 79, 0.9); }
     }
 
-    /* 반응형 레이아웃: 기본 세로 / 가로 화면 시 2컬럼 분할 */
+    /* 반응형 2컬럼 레이아웃 (가로 모드 및 넓은 화면) */
     .content-area {
       flex: 1;
       display: grid;
@@ -170,7 +170,7 @@
       cursor: pointer;
     }
 
-    /* 관리자 전용 스타일 */
+    /* 관리자 전용 */
     .admin-current-info {
       background: #0f121e;
       border: 1px solid #28304f;
@@ -219,7 +219,6 @@
       100% { transform: translateY(-50%); }
     }
 
-    /* 일반 스크롤 모드 (관리자용 및 대기 인원 적을 때) */
     .queue-box-static {
       flex: 1;
       overflow-y: auto;
@@ -267,13 +266,13 @@
 <body>
 <div class="container">
 
-  <!-- 헤더 -->
+  <!-- 헤더 ('부스' 삭제) -->
   <header class="header">
-    <div class="title" id="pageTitle">🎃 할로윈 타투스티커 부스</div>
+    <div class="title" id="pageTitle">🎃 할로윈 타투스티커</div>
     <button type="button" class="mode-switch-btn" id="modeBtn" onclick="switchViewMode()">⚙️ 관리자 모드</button>
   </header>
 
-  <!-- 고대비 굵은 공지 배너 -->
+  <!-- 강조 공지 배너 -->
   <div id="noticeBanner" class="notice-banner"></div>
 
   <!-- ==================== 손님 화면 ==================== -->
@@ -283,7 +282,7 @@
       <section class="board">
         <div class="board-tag" id="statusBadge">지금 진행 중!</div>
         <div class="call-num" id="liveNum">0번</div>
-        <div class="call-name" id="liveName">부스 준비 중</div>
+        <div class="call-name" id="liveName">준비 중</div>
         <div class="call-opt" id="liveOpt"></div>
       </section>
 
@@ -320,7 +319,6 @@
           <span class="card-title">실시간 대기 명단</span>
           <span style="color: #ff7828; font-weight: 800; font-size: 0.82rem;" id="guestWaitCountText">대기 0명</span>
         </div>
-        <!-- 롤링 뷰포트 -->
         <div class="ticker-viewport" id="guestViewport">
           <div class="ticker-track" id="guestTickerTrack">
             <div style="text-align: center; color: #9ca3af; font-size: 0.8rem; padding: 25px 0;">대기 중인 사람이 없습니다.</div>
@@ -337,7 +335,7 @@
       <section class="board">
         <div class="board-tag" id="adminStatusBadge">지금 진행 중!</div>
         <div class="call-num" id="adminLiveNum">0번</div>
-        <div class="call-name" id="adminLiveName">부스 준비 중</div>
+        <div class="call-name" id="adminLiveName">준비 중</div>
         <div class="call-opt" id="adminLiveOpt"></div>
       </section>
 
@@ -389,7 +387,7 @@
 
   var appData = {
     currentNum: 0,
-    currentName: "부스 준비 중",
+    currentName: "준비 중",
     currentOpt: "",
     lastNum: 0,
     list: [],
@@ -423,7 +421,7 @@
     if (currentView === "admin") {
       document.getElementById("modeBtn").innerText = "👤 손님 화면";
       document.getElementById("modeBtn").className = "mode-switch-btn admin-on";
-      document.getElementById("pageTitle").innerText = "🛠️ 부스 관리자 모드";
+      document.getElementById("pageTitle").innerText = "🛠️ 관리자 모드";
       document.getElementById("guestView").style.display = "none";
       document.getElementById("adminView").style.display = "grid";
       if (document.getElementById("noticeInput")) {
@@ -432,7 +430,7 @@
     } else {
       document.getElementById("modeBtn").innerText = "⚙️ 관리자 모드";
       document.getElementById("modeBtn").className = "mode-switch-btn";
-      document.getElementById("pageTitle").innerText = "🎃 할로윈 타투스티커 부스";
+      document.getElementById("pageTitle").innerText = "🎃 할로윈 타투스티커";
       document.getElementById("guestView").style.display = "grid";
       document.getElementById("adminView").style.display = "none";
     }
@@ -533,7 +531,7 @@
       return;
     }
     appData.currentNum = 0;
-    appData.currentName = "부스 준비 중";
+    appData.currentName = "준비 중";
     appData.currentOpt = "";
     saveData();
     render(true);
@@ -550,7 +548,7 @@
     if (!confirm("전체 대기열을 초기화하시겠습니까?")) return;
     appData = {
       currentNum: 0,
-      currentName: "부스 준비 중",
+      currentName: "준비 중",
       currentOpt: "",
       lastNum: 0,
       list: [],
@@ -592,7 +590,7 @@
     }
     lastRenderedJson = currentJson;
 
-    // 0. 강조 공지 배너
+    // 강조 공지 배너
     var banner = document.getElementById("noticeBanner");
     if (appData.isNoticeActive && appData.noticeText) {
       banner.innerHTML = "📢 <strong>" + appData.noticeText + "</strong>";
@@ -601,7 +599,7 @@
       banner.style.display = "none";
     }
 
-    // 1. 손님/관리자 전광판 갱신
+    // 전광판 갱신
     var isOngoing = appData.currentNum > 0;
     var badgeText = isOngoing ? "진행 중 🎨" : "대기 중 💤";
     var numText = isOngoing ? "#" + appData.currentNum + "번" : "-";
@@ -633,7 +631,7 @@
       document.getElementById("adminWaitCountText").innerText = "총 " + waitCount + "명";
     }
 
-    // 2. 손님 화면: 자동 롤링 대기 명단 구성
+    // 롤링 대기 명단 구성
     var tickerTrack = document.getElementById("guestTickerTrack");
     if (waitCount === 0) {
       tickerTrack.style.animation = "none";
@@ -652,10 +650,9 @@
                     '</div>';
       }
 
-      // 대기자가 3명 이상일 때만 무한 롤링 루프를 위해 복제 생성
       if (waitCount >= 3) {
-        tickerTrack.innerHTML = itemHtml + itemHtml; // 동일 리스트 2회 연결로 무한 롤링
-        var rollDuration = Math.max(12, waitCount * 3.5); // 인원수에 맞춰 속도 자연스럽게 조절
+        tickerTrack.innerHTML = itemHtml + itemHtml;
+        var rollDuration = Math.max(12, waitCount * 3.5);
         tickerTrack.style.animation = "tickerRoll " + rollDuration + "s linear infinite";
       } else {
         tickerTrack.style.animation = "none";
@@ -663,7 +660,7 @@
       }
     }
 
-    // 3. 관리자 화면: 정적 스크롤 명단 (취소 버튼 포함)
+    // 관리자 정적 대기 리스트
     var adminList = document.getElementById("adminQueueList");
     if (adminList) {
       if (waitCount === 0) {
