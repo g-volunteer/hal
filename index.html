@@ -2,99 +2,228 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>🎃 할로윈 타투스티커 부스 웨이팅</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>🎃 할로윈 타투스티커 부스</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
-    body { background-color: #121420; color: #f3f4f6; display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
-    .container { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 14px; padding-bottom: 30px; }
+    
+    /* 100dvh를 사용하여 모바일 주소창/하단바가 있어도 스크롤 방지 */
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: #121420;
+      color: #f3f4f6;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: 10px 12px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
     /* 헤더 */
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2b324b; padding-bottom: 12px; }
-    .title { font-size: 1.25rem; font-weight: 800; color: #ff7828; }
-    .mode-switch-btn { border: 1px solid #374151; background: #1e2238; color: #9ca3af; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2b324b;
+      padding-bottom: 6px;
+      flex-shrink: 0;
+    }
+    .title { font-size: 1.1rem; font-weight: 800; color: #ff7828; }
+    .mode-switch-btn {
+      border: 1px solid #374151;
+      background: #1e2238;
+      color: #9ca3af;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
     .mode-switch-btn.admin-on { background: #ff7828; color: #ffffff; border-color: #ff7828; }
 
-    /* 휴식/공지 배너 */
+    /* 공지 배너 (컴팩트) */
     .notice-banner {
       display: none;
       background: linear-gradient(135deg, rgba(255, 120, 40, 0.2), rgba(239, 68, 68, 0.2));
-      border: 1.5px solid #ff7828;
-      border-radius: 14px;
-      padding: 14px 16px;
+      border: 1px solid #ff7828;
+      border-radius: 10px;
+      padding: 6px 10px;
       text-align: center;
       color: #fde047;
       font-weight: 800;
-      font-size: 1rem;
-      line-height: 1.4;
-      box-shadow: 0 4px 14px rgba(255, 120, 40, 0.2);
+      font-size: 0.82rem;
+      line-height: 1.3;
+      flex-shrink: 0;
     }
 
-    /* 전광판 카드 (공통) */
-    .board { background: #1c2035; border: 1px solid #2e3553; border-radius: 18px; padding: 18px; text-align: center; }
-    .board-tag { display: inline-block; font-size: 0.75rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 12px; border-radius: 20px; margin-bottom: 6px; }
-    .call-num { font-size: 3.4rem; font-weight: 900; color: #ff7828; line-height: 1.1; margin: 4px 0; }
-    .call-name { font-size: 1.15rem; font-weight: 800; color: #ffffff; min-height: 1.4rem; }
-    .call-opt { font-size: 0.9rem; color: #fde047; font-weight: 700; margin-top: 4px; }
+    /* 상단 전광판 카드 */
+    .board {
+      background: #1c2035;
+      border: 1px solid #2e3553;
+      border-radius: 14px;
+      padding: 10px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .board-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.15);
+      padding: 2px 10px;
+      border-radius: 12px;
+      margin-bottom: 2px;
+    }
+    .call-num { font-size: 2.2rem; font-weight: 900; color: #ff7828; line-height: 1; margin: 2px 0; }
+    .call-name { font-size: 0.95rem; font-weight: 800; color: #ffffff; }
+    .call-opt { font-size: 0.8rem; color: #fde047; font-weight: 700; }
+
+    /* 메인 컨텐츠 영역 */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0; /* flex 자식 스크롤 영역 필수 */
+    }
 
     /* 카드 공통 */
-    .card { background: #1c2035; border: 1px solid #2e3553; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
-    .card-title { font-size: 1.05rem; font-weight: 800; color: #ffffff; }
+    .card {
+      background: #1c2035;
+      border: 1px solid #2e3553;
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card-title { font-size: 0.9rem; font-weight: 800; color: #ffffff; }
 
     /* 손님 폼 */
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.85rem; font-weight: 700; color: #9ca3af; }
-    .form-group input { background: #121422; border: 1px solid #2e3553; border-radius: 12px; padding: 13px; font-size: 1rem; color: #ffffff; outline: none; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 0.75rem; font-weight: 700; color: #9ca3af; }
+    .form-group input {
+      background: #121422;
+      border: 1px solid #2e3553;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      color: #ffffff;
+      outline: none;
+    }
     .form-group input:focus { border-color: #ff7828; }
     
-    .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .option-item { background: #121422; border: 1px solid #2e3553; border-radius: 12px; padding: 12px 6px; text-align: center; cursor: pointer; transition: 0.2s; }
-    .option-item .cnt { font-size: 0.95rem; font-weight: 800; color: #ffffff; }
-    .option-item .prc { font-size: 0.8rem; font-weight: 700; color: #9ca3af; margin-top: 4px; }
+    .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .option-item {
+      background: #121422;
+      border: 1px solid #2e3553;
+      border-radius: 8px;
+      padding: 6px 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .option-item .cnt { font-size: 0.82rem; font-weight: 800; color: #ffffff; }
+    .option-item .prc { font-size: 0.72rem; font-weight: 700; color: #9ca3af; margin-top: 1px; }
     .option-item.active { border-color: #ff7828; background: rgba(255, 120, 40, 0.15); }
     .option-item.active .cnt { color: #ff7828; }
     .option-item.active .prc { color: #fde047; }
 
-    .btn-main { background: #10b981; color: #ffffff; border: none; border-radius: 12px; padding: 16px; font-size: 1.1rem; font-weight: 800; cursor: pointer; }
-    .btn-main:active { filter: brightness(0.9); }
+    .btn-main {
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
 
-    /* 관리자 전용 제어부 */
+    /* 관리자 제어 */
     .admin-current-info {
       background: #121422;
       border: 1px solid #2e3553;
-      border-radius: 12px;
-      padding: 12px 14px;
+      border-radius: 8px;
+      padding: 8px;
       text-align: center;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: #fde047;
     }
-    .admin-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
-    .btn-call { background: #ff7828; color: #ffffff; border: none; border-radius: 12px; padding: 15px; font-size: 1.05rem; font-weight: 800; cursor: pointer; }
-    .btn-call:active { filter: brightness(0.9); }
-    .btn-finish { background: #2e3553; color: #e5e7eb; border: none; border-radius: 12px; padding: 15px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
-    .btn-finish:active { filter: brightness(0.9); }
-    .btn-reset-all { background: #374151; color: #f87171; border: none; border-radius: 10px; padding: 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .admin-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
+    .btn-call { background: #ff7828; color: #ffffff; border: none; border-radius: 10px; padding: 11px; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
+    .btn-finish { background: #2e3553; color: #e5e7eb; border: none; border-radius: 10px; padding: 11px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
 
-    /* 관리자 공지/메모 에디터 */
-    .quick-preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
-    .preset-btn { background: #121422; border: 1px solid #2e3553; color: #d1d5db; border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-    .preset-btn:active { background: #2b324b; }
-    .notice-toggle-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
-    .btn-notice-on { background: #ff7828; color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 800; cursor: pointer; }
-    .btn-notice-off { background: #2e3553; color: #9ca3af; border: none; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+    .quick-preset-row { display: flex; gap: 4px; flex-wrap: wrap; }
+    .preset-btn { background: #121422; border: 1px solid #2e3553; color: #d1d5db; border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
+    .notice-toggle-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .btn-notice-on { background: #ff7828; color: #fff; border: none; padding: 8px; border-radius: 8px; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
+    .btn-notice-off { background: #2e3553; color: #9ca3af; border: none; padding: 8px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+    .btn-reset-all { background: #374151; color: #f87171; border: none; border-radius: 8px; padding: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; margin-top: 4px; }
 
-    /* 대기 리스트 */
-    .queue-box { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
-    .queue-row { display: flex; justify-content: space-between; align-items: center; background: #121422; border: 1px solid #2e3553; border-radius: 10px; padding: 12px 14px; }
-    .q-left { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
-    .q-badge { font-size: 1.15rem; font-weight: 900; color: #ff7828; }
+    /* 대기 리스트 (전체 화면 높이에 맞춰 남은 공간에서만 내부 스크롤) */
+    .queue-card-wrapper {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .queue-box {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 2px;
+    }
+    .queue-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #121422;
+      border: 1px solid #2e3553;
+      border-radius: 8px;
+      padding: 8px 10px;
+      flex-shrink: 0;
+    }
+    .q-left { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+    .q-badge { font-size: 0.95rem; font-weight: 900; color: #ff7828; }
     .q-name { font-weight: 700; color: #ffffff; }
-    .q-opt { font-size: 0.8rem; color: #fde047; font-weight: 600; }
-    .btn-del { background: #374151; color: #ef4444; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+    .q-opt { font-size: 0.75rem; color: #fde047; font-weight: 600; }
+    .btn-del { background: #374151; color: #ef4444; border: none; padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
 
     /* 토스트 알림 */
-    .toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff7828; color: #fff; padding: 14px 24px; border-radius: 30px; font-weight: 800; font-size: 1rem; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 1000; text-align: center; }
+    .toast {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff7828;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+      z-index: 1000;
+      text-align: center;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -109,7 +238,7 @@
   <!-- 휴식 및 안내 공지 배너 -->
   <div id="noticeBanner" class="notice-banner"></div>
 
-  <!-- 1. 상단: 현재 진행 현황 전광판 (손님/관리자 공통) -->
+  <!-- 1. 상단 전광판 -->
   <section class="board">
     <div class="board-tag" id="statusBadge">지금 진행 중!</div>
     <div class="call-num" id="liveNum">0번</div>
@@ -118,15 +247,15 @@
   </section>
 
   <!-- ==================== 손님 화면 ==================== -->
-  <div id="guestView" style="display: flex; flex-direction: column; gap: 14px;">
-    <div class="card">
-      <div class="card-title">⚡ 줄서기 번호표 등록</div>
+  <div id="guestView" class="content-area">
+    <!-- 등록 폼 -->
+    <div class="card" style="flex-shrink: 0;">
       <div class="form-group">
         <label>원하는 닉네임 (또는 이름)</label>
         <input type="text" id="custName" placeholder="예: 호박마녀, 수아, 번개맨" maxlength="10" />
       </div>
       <div class="form-group">
-        <label>타투스티커 수량 선택 (스티커는 현장에서 골라요!)</label>
+        <label>타투스티커 수량 선택</label>
         <div class="option-grid">
           <div class="option-item active" onclick="pickOption(this, '타투스티커 1장', '1,000원')">
             <div class="cnt">타투 1장</div>
@@ -145,56 +274,53 @@
       <button type="button" class="btn-main" onclick="registerQueue()">번호표 등록하기</button>
     </div>
 
-    <!-- 대기 명단 -->
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span class="card-title">실시간 대기 명단</span>
-        <span style="color: #ff7828; font-weight: 800; font-size: 0.95rem;" id="guestWaitCountText">대기 0명 (약 0분)</span>
+    <!-- 대기 리스트 (남은 높이 100% 활용, 내부 스크롤) -->
+    <div class="card queue-card-wrapper">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+        <span class="card-title">대기 명단</span>
+        <span style="color: #ff7828; font-weight: 800; font-size: 0.85rem;" id="guestWaitCountText">대기 0명</span>
       </div>
       <div class="queue-box" id="guestQueueList">
-        <div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>
+        <div style="text-align: center; color: #9ca3af; font-size: 0.8rem; padding: 15px 0;">대기 중인 사람이 없습니다.</div>
       </div>
     </div>
   </div>
 
   <!-- ==================== 관리자 화면 ==================== -->
-  <div id="adminView" style="display: none; flex-direction: column; gap: 14px;">
-    <!-- 관리자 호출 컨트롤러 -->
-    <div class="card">
-      <div class="card-title">📢 손님 호출 컨트롤</div>
-      <!-- 관리자 모드 전용 현재 손님 확인 바 -->
+  <div id="adminView" class="content-area" style="display: none;">
+    <!-- 관리자 버튼 -->
+    <div class="card" style="flex-shrink: 0;">
       <div class="admin-current-info" id="adminCurrentInfo">현재 대기 중 (호출 대기)</div>
       <div class="admin-controls">
-        <button type="button" class="btn-call" onclick="callNextDirect()">📢 다음 손님 호출하기</button>
+        <button type="button" class="btn-call" onclick="callNextDirect()">📢 다음 손님 호출</button>
         <button type="button" class="btn-finish" onclick="finishCurrentDirect()">완료</button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">📝 부스 공지 및 휴식시간 설정</div>
+    <!-- 공지 설정 -->
+    <div class="card" style="flex-shrink: 0;">
       <div class="quick-preset-row">
-        <button type="button" class="preset-btn" onclick="setPresetMemo('☕ 30분간 잠시 쉬어갑니다! (대기 등록은 가능)')">☕ 30분 휴식</button>
-        <button type="button" class="preset-btn" onclick="setPresetMemo('🍙 점심시간입니다! (13:30부터 순번대로 시작)')">🍙 식사 시간</button>
-        <button type="button" class="preset-btn" onclick="setPresetMemo('🎨 스티커 물품 재정비 중입니다. 잠시만 기다려주세요!')">🎨 재정비 중</button>
+        <button type="button" class="preset-btn" onclick="setPresetMemo('☕ 30분간 잠시 쉬어갑니다!')">☕ 30분 휴식</button>
+        <button type="button" class="preset-btn" onclick="setPresetMemo('🍙 점심시간입니다!')">🍙 식사 시간</button>
+        <button type="button" class="preset-btn" onclick="setPresetMemo('🎨 물품 재정비 중입니다!')">🎨 재정비</button>
       </div>
-      <div class="form-group">
-        <input type="text" id="noticeInput" placeholder="손님 화면에 띄울 안내 메모를 적어주세요" maxlength="40" />
-      </div>
+      <input type="text" id="noticeInput" placeholder="손님 화면 공지 문구" maxlength="40" style="background:#121422; border:1px solid #2e3553; border-radius:8px; padding:6px 10px; font-size:0.85rem; color:#fff; outline:none;" />
       <div class="notice-toggle-btns">
-        <button type="button" class="btn-notice-on" onclick="enableNotice()">📢 공지 띄우기</button>
+        <button type="button" class="btn-notice-on" onclick="enableNotice()">공지 띄우기</button>
         <button type="button" class="btn-notice-off" onclick="disableNotice()">공지 끄기</button>
       </div>
     </div>
 
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span class="card-title">대기열 실시간 관리</span>
-        <span style="color: #ff7828; font-weight: 800; font-size: 0.95rem;" id="adminWaitCountText">총 0명</span>
+    <!-- 대기 관리 리스트 -->
+    <div class="card queue-card-wrapper">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+        <span class="card-title">대기열 관리</span>
+        <span style="color: #ff7828; font-weight: 800; font-size: 0.85rem;" id="adminWaitCountText">총 0명</span>
       </div>
       <div class="queue-box" id="adminQueueList">
-        <div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>
+        <div style="text-align: center; color: #9ca3af; font-size: 0.8rem; padding: 15px 0;">대기 중인 사람이 없습니다.</div>
       </div>
-      <button type="button" class="btn-reset-all" onclick="resetQueue()">⚠️ 전체 대기열 초기화 (부스 마감)</button>
+      <button type="button" class="btn-reset-all" onclick="resetQueue()">⚠️ 전체 초기화</button>
     </div>
   </div>
 
@@ -241,7 +367,7 @@
 
   function applyViewMode() {
     if (currentView === "admin") {
-      document.getElementById("modeBtn").innerText = "👤 손님 화면으로";
+      document.getElementById("modeBtn").innerText = "👤 손님 화면";
       document.getElementById("modeBtn").className = "mode-switch-btn admin-on";
       document.getElementById("pageTitle").innerText = "🛠️ 부스 관리자 모드";
       document.getElementById("guestView").style.display = "none";
@@ -283,14 +409,14 @@
   function enableNotice() {
     var val = document.getElementById("noticeInput").value.trim();
     if (!val) {
-      alert("안내할 공지 문구를 입력해 주세요.");
+      alert("공지 문구를 입력해 주세요.");
       return;
     }
     appData.noticeText = val;
     appData.isNoticeActive = true;
     saveData();
     render(true);
-    showToast("📢 공지가 화면에 등록되었습니다!");
+    showToast("📢 공지가 등록되었습니다!");
   }
 
   function disableNotice() {
@@ -329,13 +455,13 @@
     saveData();
     render(true);
 
-    showToast("🎉 #" + item.num + "번 " + item.name + " 님 접수 완료! (대기 " + appData.list.length + "번째)");
+    showToast("🎉 #" + item.num + "번 " + item.name + " 님 접수 완료!");
     playChime(600, 0.15);
   }
 
   function callNextDirect() {
     if (appData.list.length === 0) {
-      alert("대기 중인 다음 손님이 없습니다.");
+      alert("다음 손님이 없습니다.");
       return;
     }
     var next = appData.list.shift();
@@ -349,7 +475,7 @@
 
   function finishCurrentDirect() {
     if (appData.currentNum === 0) {
-      alert("현재 진행 중인 손님이 없습니다.");
+      alert("진행 중인 손님이 없습니다.");
       return;
     }
     appData.currentNum = 0;
@@ -367,7 +493,7 @@
   }
 
   function resetQueue() {
-    if (!confirm("전체 번호표와 대기열을 완전히 초기화하시겠습니까?")) return;
+    if (!confirm("전체 대기열을 초기화하시겠습니까?")) return;
     appData = {
       currentNum: 0,
       currentName: "부스 준비 중",
@@ -387,7 +513,7 @@
     toast.style.display = "block";
     setTimeout(function() {
       toast.style.display = "none";
-    }, 2800);
+    }, 2400);
   }
 
   function playChime(freq, dur) {
@@ -412,7 +538,7 @@
     }
     lastRenderedJson = currentJson;
 
-    // 0. 공지 배너
+    // 공지 배너
     var banner = document.getElementById("noticeBanner");
     if (appData.isNoticeActive && appData.noticeText) {
       banner.innerText = appData.noticeText;
@@ -421,7 +547,7 @@
       banner.style.display = "none";
     }
 
-    // 1. 공통 상단 전광판 (어린이 제거 -> 닉네임 + 님)
+    // 상단 전광판
     var badge = document.getElementById("statusBadge");
     var liveNum = document.getElementById("liveNum");
     var liveName = document.getElementById("liveName");
@@ -429,19 +555,18 @@
     var adminCurrentInfo = document.getElementById("adminCurrentInfo");
 
     if (appData.currentNum > 0) {
-      badge.innerText = "현재 진행 중 🎨";
+      badge.innerText = "진행 중 🎨";
       badge.style.background = "rgba(255, 120, 40, 0.2)";
       badge.style.color = "#ff7828";
       liveNum.innerText = "#" + appData.currentNum + "번";
       liveName.innerText = appData.currentName + " 님";
       liveOpt.innerText = "[" + appData.currentOpt + "]";
 
-      // 관리자 화면 내부 상태창
       if (adminCurrentInfo) {
-        adminCurrentInfo.innerHTML = "👉 진행 중: <strong>#" + appData.currentNum + "번 " + appData.currentName + " 님</strong> [" + appData.currentOpt + "]";
+        adminCurrentInfo.innerHTML = "👉 <strong>#" + appData.currentNum + "번 " + appData.currentName + " 님</strong> [" + appData.currentOpt + "]";
       }
     } else {
-      badge.innerText = "부스 대기 중 💤";
+      badge.innerText = "대기 중 💤";
       badge.style.background = "rgba(16, 185, 129, 0.15)";
       badge.style.color = "#10b981";
       liveNum.innerText = "-";
@@ -449,17 +574,17 @@
       liveOpt.innerText = "";
 
       if (adminCurrentInfo) {
-        adminCurrentInfo.innerText = "현재 대기 중 (호출 버튼을 눌러주세요)";
+        adminCurrentInfo.innerText = "현재 대기 중 (호출 버튼 클릭)";
       }
     }
 
     var waitCount = appData.list.length;
 
-    // 2. 손님 화면 대기 리스트
-    document.getElementById("guestWaitCountText").innerText = "대기 " + waitCount + "명 (약 " + (waitCount * 3) + "분)";
+    // 손님 화면 대기 리스트
+    document.getElementById("guestWaitCountText").innerText = "대기 " + waitCount + "명";
     var guestList = document.getElementById("guestQueueList");
     if (waitCount === 0) {
-      guestList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>';
+      guestList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.8rem; padding: 15px 0;">대기 중인 사람이 없습니다.</div>';
     } else {
       var gHtml = "";
       for (var i = 0; i < waitCount; i++) {
@@ -470,17 +595,17 @@
                      '<span class="q-name">' + row.name + '</span>' +
                      '<span class="q-opt">[' + row.opt + ']</span>' +
                    '</div>' +
-                   '<div style="font-size: 0.8rem; color: #9ca3af; font-weight: 700;">' + (i + 1) + '번째</div>' +
+                   '<div style="font-size: 0.75rem; color: #9ca3af; font-weight: 700;">' + (i + 1) + '번째</div>' +
                  '</div>';
       }
       guestList.innerHTML = gHtml;
     }
 
-    // 3. 관리자 화면 대기 리스트
+    // 관리자 화면 대기 리스트
     document.getElementById("adminWaitCountText").innerText = "총 " + waitCount + "명";
     var adminList = document.getElementById("adminQueueList");
     if (waitCount === 0) {
-      adminList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.85rem; padding: 20px 0;">대기 중인 사람이 없습니다.</div>';
+      adminList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 0.8rem; padding: 15px 0;">대기 중인 사람이 없습니다.</div>';
     } else {
       var aHtml = "";
       for (var j = 0; j < waitCount; j++) {
