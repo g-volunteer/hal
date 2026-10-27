@@ -59,6 +59,16 @@
     .btn-main:active { filter: brightness(0.9); }
 
     /* 관리자 전용 제어부 */
+    .admin-current-info {
+      background: #121422;
+      border: 1px solid #2e3553;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fde047;
+    }
     .admin-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
     .btn-call { background: #ff7828; color: #ffffff; border: none; border-radius: 12px; padding: 15px; font-size: 1.05rem; font-weight: 800; cursor: pointer; }
     .btn-call:active { filter: brightness(0.9); }
@@ -99,7 +109,7 @@
   <!-- 휴식 및 안내 공지 배너 -->
   <div id="noticeBanner" class="notice-banner"></div>
 
-  <!-- 1. 상단: 현재 진행 현황 전광판 -->
+  <!-- 1. 상단: 현재 진행 현황 전광판 (손님/관리자 공통) -->
   <section class="board">
     <div class="board-tag" id="statusBadge">지금 진행 중!</div>
     <div class="call-num" id="liveNum">0번</div>
@@ -149,8 +159,11 @@
 
   <!-- ==================== 관리자 화면 ==================== -->
   <div id="adminView" style="display: none; flex-direction: column; gap: 14px;">
+    <!-- 관리자 호출 컨트롤러 -->
     <div class="card">
       <div class="card-title">📢 손님 호출 컨트롤</div>
+      <!-- 관리자 모드 전용 현재 손님 확인 바 -->
+      <div class="admin-current-info" id="adminCurrentInfo">현재 대기 중 (호출 대기)</div>
       <div class="admin-controls">
         <button type="button" class="btn-call" onclick="callNextDirect()">📢 다음 손님 호출하기</button>
         <button type="button" class="btn-finish" onclick="finishCurrentDirect()">완료</button>
@@ -408,11 +421,12 @@
       banner.style.display = "none";
     }
 
-    // 1. 공통 상단 전광판 ('어린이' 제거 -> '닉네임 + 님')
+    // 1. 공통 상단 전광판 (어린이 제거 -> 닉네임 + 님)
     var badge = document.getElementById("statusBadge");
     var liveNum = document.getElementById("liveNum");
     var liveName = document.getElementById("liveName");
     var liveOpt = document.getElementById("liveOpt");
+    var adminCurrentInfo = document.getElementById("adminCurrentInfo");
 
     if (appData.currentNum > 0) {
       badge.innerText = "현재 진행 중 🎨";
@@ -421,6 +435,11 @@
       liveNum.innerText = "#" + appData.currentNum + "번";
       liveName.innerText = appData.currentName + " 님";
       liveOpt.innerText = "[" + appData.currentOpt + "]";
+
+      // 관리자 화면 내부 상태창
+      if (adminCurrentInfo) {
+        adminCurrentInfo.innerHTML = "👉 진행 중: <strong>#" + appData.currentNum + "번 " + appData.currentName + " 님</strong> [" + appData.currentOpt + "]";
+      }
     } else {
       badge.innerText = "부스 대기 중 💤";
       badge.style.background = "rgba(16, 185, 129, 0.15)";
@@ -428,6 +447,10 @@
       liveNum.innerText = "-";
       liveName.innerText = "다음 손님을 호출해 주세요";
       liveOpt.innerText = "";
+
+      if (adminCurrentInfo) {
+        adminCurrentInfo.innerText = "현재 대기 중 (호출 버튼을 눌러주세요)";
+      }
     }
 
     var waitCount = appData.list.length;
