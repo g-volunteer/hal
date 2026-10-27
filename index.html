@@ -11,7 +11,6 @@
       width: 100%;
       height: 100%;
       height: 100dvh;
-      overflow: hidden;
       background-color: #0e101a;
       color: #f3f4f6;
     }
@@ -19,13 +18,15 @@
     body {
       display: flex;
       justify-content: center;
-      padding: 8px 12px;
+      padding: 8px 10px;
+      overflow-y: auto; /* 창이 너무 작아지면 전체 스크롤 허용 */
+      overflow-x: hidden;
     }
 
     .container {
       width: 100%;
       max-width: 960px;
-      height: 100%;
+      min-height: 100%;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -37,10 +38,10 @@
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #23293f;
-      padding-bottom: 6px;
+      padding-bottom: 4px;
       flex-shrink: 0;
     }
-    .title { font-size: 1.15rem; font-weight: 800; color: #ff7828; }
+    .title { font-size: 1.1rem; font-weight: 800; color: #ff7828; }
     .mode-switch-btn {
       border: 1px solid #374151;
       background: #1e2238;
@@ -58,23 +59,23 @@
       display: none;
       background: #ff5722;
       border: 2px solid #ffd54f;
-      border-radius: 10px;
-      padding: 8px 12px;
+      border-radius: 8px;
+      padding: 6px 10px;
       text-align: center;
       color: #ffffff;
       font-weight: 900;
-      font-size: 0.95rem;
-      line-height: 1.35;
-      box-shadow: 0 0 16px rgba(255, 87, 34, 0.6);
+      font-size: 0.88rem;
+      line-height: 1.3;
+      box-shadow: 0 0 14px rgba(255, 87, 34, 0.6);
       flex-shrink: 0;
       animation: pulseNotice 2s infinite ease-in-out;
     }
     @keyframes pulseNotice {
-      0%, 100% { box-shadow: 0 0 14px rgba(255, 87, 34, 0.5); }
-      50% { box-shadow: 0 0 24px rgba(255, 213, 79, 0.9); }
+      0%, 100% { box-shadow: 0 0 10px rgba(255, 87, 34, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(255, 213, 79, 0.9); }
     }
 
-    /* 반응형 2컬럼 레이아웃 (가로 모드 및 넓은 화면) */
+    /* 반응형 레이아웃 */
     .content-area {
       flex: 1;
       display: grid;
@@ -83,7 +84,8 @@
       min-height: 0;
     }
 
-    @media (orientation: landscape) and (min-height: 400px), (min-width: 680px) {
+    /* 가로 모드 또는 가로폭 680px 이상 */
+    @media (orientation: landscape) and (min-height: 380px), (min-width: 680px) {
       .content-area {
         grid-template-columns: 1.1fr 0.9fr;
       }
@@ -92,7 +94,7 @@
     .col-left, .col-right {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       min-height: 0;
     }
 
@@ -108,29 +110,36 @@
     }
     .card-title { font-size: 0.88rem; font-weight: 800; color: #ffffff; }
 
-    /* 전광판 카드 */
+    /* 전광판 (슬림화) */
     .board {
       background: #171b2d;
       border: 1px solid #28304f;
       border-radius: 12px;
-      padding: 8px 10px;
+      padding: 6px 10px;
       text-align: center;
       flex-shrink: 0;
     }
     .board-tag {
       display: inline-block;
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: 800;
       color: #10b981;
       background: rgba(16, 185, 129, 0.15);
       padding: 2px 8px;
       border-radius: 10px;
     }
-    .call-num { font-size: 2.1rem; font-weight: 900; color: #ff7828; line-height: 1.05; margin: 2px 0; }
-    .call-name { font-size: 0.95rem; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .call-opt { font-size: 0.78rem; color: #fde047; font-weight: 700; }
+    .call-num { font-size: 1.9rem; font-weight: 900; color: #ff7828; line-height: 1; margin: 2px 0; }
+    .call-name { font-size: 0.92rem; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .call-opt { font-size: 0.75rem; color: #fde047; font-weight: 700; }
 
-    /* 입력 폼 */
+    /* 등록 폼 카드 (절대 찌그러지지 않도록 flex-shrink: 0 설정) */
+    .form-card {
+      flex-shrink: 0 !important;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
     .form-group { display: flex; flex-direction: column; gap: 3px; }
     .form-group label { font-size: 0.72rem; font-weight: 700; color: #9ca3af; }
     .form-group input {
@@ -159,16 +168,70 @@
     .option-item.active .cnt { color: #ff7828; }
     .option-item.active .prc { color: #fde047; }
 
+    /* 번호표 등록 버튼: 항상 시원하게 보이도록 높이 및 가시성 고정 */
     .btn-main {
       background: #10b981;
       color: #ffffff;
       border: none;
       border-radius: 8px;
-      padding: 10px;
-      font-size: 0.92rem;
+      padding: 11px;
+      font-size: 0.95rem;
       font-weight: 800;
       cursor: pointer;
+      flex-shrink: 0;
     }
+    .btn-main:active { filter: brightness(0.9); }
+
+    /* 대기 리스트 카드 */
+    .queue-card-wrapper {
+      flex: 1;
+      min-height: 120px; /* 최소 높이 보장 */
+      display: flex;
+      flex-direction: column;
+    }
+    .ticker-viewport {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .ticker-track {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      animation: tickerRoll 24s linear infinite;
+    }
+    .ticker-viewport:hover .ticker-track,
+    .ticker-viewport:active .ticker-track {
+      animation-play-state: paused;
+    }
+    @keyframes tickerRoll {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    .queue-box-static {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .queue-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f121e;
+      border: 1px solid #28304f;
+      border-radius: 8px;
+      padding: 7px 10px;
+      flex-shrink: 0;
+    }
+    .q-left { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+    .q-badge { font-size: 0.95rem; font-weight: 900; color: #ff7828; }
+    .q-name { font-weight: 700; color: #ffffff; }
+    .q-opt { font-size: 0.72rem; color: #fde047; font-weight: 600; }
+    .btn-del { background: #374151; color: #ef4444; border: none; padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
 
     /* 관리자 전용 */
     .admin-current-info {
@@ -191,57 +254,6 @@
     .btn-notice-on { background: #ff7828; color: #fff; border: none; padding: 7px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; cursor: pointer; }
     .btn-notice-off { background: #28304f; color: #9ca3af; border: none; padding: 7px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
     .btn-reset-all { background: #374151; color: #f87171; border: none; border-radius: 6px; padding: 7px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 4px; }
-
-    /* 대기 리스트 카드 & 무한 롤링 티커 */
-    .queue-card-wrapper {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    .ticker-viewport {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
-    .ticker-track {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      animation: tickerRoll 24s linear infinite;
-    }
-    .ticker-viewport:hover .ticker-track,
-    .ticker-viewport:active .ticker-track {
-      animation-play-state: paused;
-    }
-    @keyframes tickerRoll {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-50%); }
-    }
-
-    .queue-box-static {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .queue-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #0f121e;
-      border: 1px solid #28304f;
-      border-radius: 8px;
-      padding: 8px 10px;
-      flex-shrink: 0;
-    }
-    .q-left { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
-    .q-badge { font-size: 0.95rem; font-weight: 900; color: #ff7828; }
-    .q-name { font-weight: 700; color: #ffffff; }
-    .q-opt { font-size: 0.72rem; color: #fde047; font-weight: 600; }
-    .btn-del { background: #374151; color: #ef4444; border: none; padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
 
     /* 토스트 알림 */
     .toast {
@@ -266,7 +278,7 @@
 <body>
 <div class="container">
 
-  <!-- 헤더 ('부스' 삭제) -->
+  <!-- 헤더 -->
   <header class="header">
     <div class="title" id="pageTitle">🎃 할로윈 타투스티커</div>
     <button type="button" class="mode-switch-btn" id="modeBtn" onclick="switchViewMode()">⚙️ 관리자 모드</button>
@@ -286,7 +298,8 @@
         <div class="call-opt" id="liveOpt"></div>
       </section>
 
-      <div class="card" style="flex: 1; justify-content: space-around;">
+      <!-- 폼 카드가 잘리지 않도록 크기 고정 -->
+      <div class="card form-card">
         <div class="form-group">
           <label>원하는 닉네임 (또는 이름)</label>
           <input type="text" id="custName" placeholder="예: 호박마녀, 수아, 번개맨" maxlength="10" />
@@ -339,7 +352,7 @@
         <div class="call-opt" id="adminLiveOpt"></div>
       </section>
 
-      <div class="card">
+      <div class="card form-card">
         <div class="admin-current-info" id="adminCurrentInfo">현재 대기 중 (호출 대기)</div>
         <div class="admin-controls">
           <button type="button" class="btn-call" onclick="callNextDirect()">📢 다음 손님 호출</button>
@@ -347,7 +360,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card form-card">
         <div class="quick-preset-row">
           <button type="button" class="preset-btn" onclick="setPresetMemo('☕ 30분간 잠시 쉬어갑니다! (대기 접수 가능)')">☕ 30분 휴식</button>
           <button type="button" class="preset-btn" onclick="setPresetMemo('🍙 점심시간입니다! (13:30부터 순번대로 시작)')">🍙 식사 시간</button>
